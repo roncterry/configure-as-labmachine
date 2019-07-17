@@ -1,0 +1,21 @@
+[Default Applications]
+text/html=google-chrome.desktop
+x-scheme-handler/http=google-chrome.desktop
+x-scheme-handler/https=google-chrome.desktop
+x-scheme-handler/about=google-chrome.desktop
+x-scheme-handler/unknown=google-chrome.desktop
+x-scheme-handler/mailto=thunderbird.desktop
+inode/directory=org.gnome.Nautilus.desktop
+
+[Added Associations]
+text/plain=gvim.desktop;
+x-scheme-handler/mailto=thunderbird.desktop;
+application/xml=gvim.desktop;
+application/x-shellscript=gvim.desktop;
+text/x-matlab=gvim.desktop;
+application/json=gvim.desktop;
+text/markdown=remarkable.desktop;
+video/quicktime=vlc.desktop;
+image/png=gimp.desktop;
+application/x-cd-image=gnome-disk-image-mounter.desktop;mount-archive.desktop;
+video/mp4=vlc.desktop;
