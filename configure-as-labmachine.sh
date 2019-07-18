@@ -345,10 +345,12 @@ install_user_environment() {
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/mimeapps.list /home/${USER}/.config/${NC}"
     ${SUDO_CMD} cp ${FILES_SRC_DIR}/mimeapps.list /home/${USER}/.config/
 
-    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} chown -R ${USER}.${USERS_GROUP} /home/${USER}/.local${NC}"
-    ${SUDO_CMD} chown -R ${USER}.${USERS_GROUP} /home/${USER}/.local
-    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} chown -R ${USER}.${USERS_GROUP} /home/${USER}/.config${NC}"
-    ${SUDO_CMD} chown -R ${USER}.${USERS_GROUP} /home/${USER}/.config
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} chown -R ${USER}.${USERS_GROUP} /home/${USER}${NC}"
+    ${SUDO_CMD} chown -R ${USER}.${USERS_GROUP} /home/${USER}
+    #echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} chown -R ${USER}.${USERS_GROUP} /home/${USER}/.local${NC}"
+    #${SUDO_CMD} chown -R ${USER}.${USERS_GROUP} /home/${USER}/.local
+    #echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} chown -R ${USER}.${USERS_GROUP} /home/${USER}/.config${NC}"
+    #${SUDO_CMD} chown -R ${USER}.${USERS_GROUP} /home/${USER}/.config
 
     echo
   done
