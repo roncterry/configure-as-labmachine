@@ -253,6 +253,7 @@ install_user_environment() {
   USERS_GROUP=users
 
   echo -e "${LTCYAN}/etc/skel/:${NC}"
+  echo -e "${LTCYAN}----------------------${NC}"
   # GNOME
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} mkdir -p /etc/skel/.local/share/gnome-shell/extensions${NC}"
     mkdir -p /etc/skel/.local/share/gnome-shell/extensions
@@ -273,16 +274,36 @@ install_user_environment() {
   echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/mimeapps.list /etc/skel/.config/${NC}"
   ${SUDO_CMD} cp ${FILES_SRC_DIR}/mimeapps.list /etc/skel/.config/
 
-  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} chown -R root.root /home/${USER}/.local${NC}"
-  ${SUDO_CMD} chown -R root.root /home/${USER}/.local
-  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} chown -R root.root /home/${USER}/.config${NC}"
-  ${SUDO_CMD} chown -R root.root /home/${USER}/.config
+  echo
+
+  echo -e "${LTCYAN}/root/:${NC}"
+  echo -e "${LTCYAN}----------------------${NC}"
+  # GNOME
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} mkdir -p /root/.local/share/gnome-shell/extensions${NC}"
+    mkdir -p /root/.local/share/gnome-shell/extensions
+  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /root/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}/gnome-shell-extensions.tgz${NC}"
+  ${SUDO_CMD} tar -C /root/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}/gnome-shell-extensions.tgz
+  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} mkdir -p /root/.config/dconf${NC}"
+  mkdir -p /root/.config/dconf
+  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/user /root/.config/dconf/${NC}"
+  ${SUDO_CMD} cp ${FILES_SRC_DIR}/user /root/.config/dconf/
+
+  # XFCE4
+  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /root/.config/ -xvf ${FILES_SRC_DIR}/xfce4.tgz${NC}"
+  ${SUDO_CMD} tar -C /root/.config/ -xvf ${FILES_SRC_DIR}/xfce4.tgz
+  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /root/.config/ -xvf ${FILES_SRC_DIR}/Thunar.tgz${NC}"
+  ${SUDO_CMD} tar -C /root/.config/ -xvf ${FILES_SRC_DIR}/Thunar.tgz
+
+  # mime
+  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/mimeapps.list /root/.config/${NC}"
+  ${SUDO_CMD} cp ${FILES_SRC_DIR}/mimeapps.list /root/.config/
 
   echo
 
   for USER in USER_LIST
   do
     echo -e "${LTCYAN}/home/${USER}/:${NC}"
+    echo -e "${LTCYAN}----------------------${NC}"
     # GNOME
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} mkdir -p /home/${USER}/.local/share/gnome-shell/extensions${NC}"
     mkdir -p /home/${USER}/.local/share/gnome-shell/extensions
