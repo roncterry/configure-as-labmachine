@@ -355,6 +355,14 @@ configure_displaymanager() {
   echo -e "${LTCYAN}DISPLAYMANAGER_STARTS_XSERVER="yes"${NC}"
   ${SUDO_CMD} sed -i 's/^DISPLAYMANAGER_STARTS_XSERVER=.*/DISPLAYMANAGER_STARTS_XSERVER="yes"/' /etc/sysconfig/displaymanager
 
+  echo -e "${LTCYAN}DEFAULT_WM="gnome"${NC}"
+  ${SUDO_CMD} sed -i 's/^DEFAULT_WM=.*/DEFAULT_WM="gnome"/' /etc/sysconfig/displaymanager
+
+  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDU_CMD} update-alternatives --set default-displaymanager /usr/lib/X11/displaymanagers/gdm ${NC}"
+  ${SUDU_CMD} update-alternatives --set default-displaymanager /usr/lib/X11/displaymanagers/gdm 
+  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDU_CMD} update-alternatives --set default-xsession.desktop /usr/share/xsessions/gnome.desktop${NC}"
+  ${SUDU_CMD} update-alternatives --set default-xsession.desktop /usr/share/xsessions/gnome.desktop
+ 
   echo
 }
 
