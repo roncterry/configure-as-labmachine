@@ -300,7 +300,7 @@ install_user_environment() {
 
   echo
 
-  for USER in USER_LIST
+  for USER in ${USER_LIST}
   do
     echo -e "${LTCYAN}/home/${USER}/:${NC}"
     echo -e "${LTCYAN}----------------------${NC}"
@@ -336,13 +336,13 @@ configure_displaymanager() {
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
 
   echo -e "${LTCYAN}DISPLAYMANAGER_XSERVER="Xorg"${NC}"
-  ${SUDO_CMD} sed -i 's/^DISPLAYMANAGER_XSERVER=.*/DISPLAYMANAGER_XSERVER="Xorg"/' /etc/systeconfig/displaymanager
+  ${SUDO_CMD} sed -i 's/^DISPLAYMANAGER_XSERVER=.*/DISPLAYMANAGER_XSERVER="Xorg"/' /etc/sysconfig/displaymanager
 
   echo -e "${LTCYAN}DISPLAYMANAGER="gdm"${NC}"
-  ${SUDO_CMD} sed -i 's/^DISPLAYMANAGER=.*/DISPLAYMANAGER="gdm"/' /etc/systeconfig/displaymanager
+  ${SUDO_CMD} sed -i 's/^DISPLAYMANAGER=.*/DISPLAYMANAGER="gdm"/' /etc/sysconfig/displaymanager
 
   echo -e "${LTCYAN}DISPLAYMANAGER_STARTS_XSERVER="yes"${NC}"
-  ${SUDO_CMD} sed -i 's/^DISPLAYMANAGER_STARTS_XSERVER=.*/DISPLAYMANAGER_STARTS_XSERVER="yes"/' /etc/systeconfig/displaymanager
+  ${SUDO_CMD} sed -i 's/^DISPLAYMANAGER_STARTS_XSERVER=.*/DISPLAYMANAGER_STARTS_XSERVER="yes"/' /etc/sysconfig/displaymanager
 
   echo
 }
