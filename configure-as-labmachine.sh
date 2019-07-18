@@ -276,10 +276,10 @@ install_user_environment() {
   ${SUDO_CMD} cp ${FILES_SRC_DIR}/user /etc/skel/.config/dconf/
 
   # XFCE4
-  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /etc/skel/.config/ -xvf ${FILES_SRC_DIR}/xfce4.tgz${NC}"
-  ${SUDO_CMD} tar -C /etc/skel/.config/ -xvf ${FILES_SRC_DIR}/xfce4.tgz
-  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /etc/skel/.config/ -xvf ${FILES_SRC_DIR}/Thunar.tgz${NC}"
-  ${SUDO_CMD} tar -C /etc/skel/.config/ -xvf ${FILES_SRC_DIR}/Thunar.tgz
+  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /etc/skel/.config/ -xzf ${FILES_SRC_DIR}/xfce4.tgz${NC}"
+  ${SUDO_CMD} tar -C /etc/skel/.config/ -xzf ${FILES_SRC_DIR}/xfce4.tgz
+  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /etc/skel/.config/ -xzf ${FILES_SRC_DIR}/Thunar.tgz${NC}"
+  ${SUDO_CMD} tar -C /etc/skel/.config/ -xzf ${FILES_SRC_DIR}/Thunar.tgz
 
   # mime
   echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/mimeapps.list /etc/skel/.config/${NC}"
@@ -300,10 +300,10 @@ install_user_environment() {
   ${SUDO_CMD} cp ${FILES_SRC_DIR}/user /root/.config/dconf/
 
   # XFCE4
-  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /root/.config/ -xvf ${FILES_SRC_DIR}/xfce4.tgz${NC}"
-  ${SUDO_CMD} tar -C /root/.config/ -xvf ${FILES_SRC_DIR}/xfce4.tgz
-  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /root/.config/ -xvf ${FILES_SRC_DIR}/Thunar.tgz${NC}"
-  ${SUDO_CMD} tar -C /root/.config/ -xvf ${FILES_SRC_DIR}/Thunar.tgz
+  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /root/.config/ -xzf ${FILES_SRC_DIR}/xfce4.tgz${NC}"
+  ${SUDO_CMD} tar -C /root/.config/ -xzf ${FILES_SRC_DIR}/xfce4.tgz
+  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /root/.config/ -xzf ${FILES_SRC_DIR}/Thunar.tgz${NC}"
+  ${SUDO_CMD} tar -C /root/.config/ -xzf ${FILES_SRC_DIR}/Thunar.tgz
 
   # mime
   echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/mimeapps.list /root/.config/${NC}"
@@ -325,10 +325,10 @@ install_user_environment() {
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/user /home/${USER}/.config/dconf/${NC}"
     ${SUDO_CMD} cp ${FILES_SRC_DIR}/user /home/${USER}/.config/dconf/
     # XFCE4
-    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /home/${USER}/.config/ -xvf ${FILES_SRC_DIR}/xfce4.tgz${NC}"
-    ${SUDO_CMD} tar -C /home/${USER}/.config/ -xvf ${FILES_SRC_DIR}/xfce4.tgz
-    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /home/${USER}/.config/ -xvf ${FILES_SRC_DIR}/Thunar.tgz${NC}"
-    ${SUDO_CMD} tar -C /home/${USER}/.config/ -xvf ${FILES_SRC_DIR}/Thunar.tgz
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /home/${USER}/.config/ -xzf ${FILES_SRC_DIR}/xfce4.tgz${NC}"
+    ${SUDO_CMD} tar -C /home/${USER}/.config/ -xzf ${FILES_SRC_DIR}/xfce4.tgz
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /home/${USER}/.config/ -xzf ${FILES_SRC_DIR}/Thunar.tgz${NC}"
+    ${SUDO_CMD} tar -C /home/${USER}/.config/ -xzf ${FILES_SRC_DIR}/Thunar.tgz
     # mime
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/mimeapps.list /home/${USER}/.config/${NC}"
     ${SUDO_CMD} cp ${FILES_SRC_DIR}/mimeapps.list /home/${USER}/.config/
