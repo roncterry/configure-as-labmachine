@@ -130,7 +130,7 @@ configure_sudo() {
     ${SUDO_CMD} sed -i 's/\(^ALL .*\)/\#\1/' /etc/sudoers
   fi
 
-  if ! grep "^%users ALL=(ALL) NOPASSWD: ALL" /etc/sudoers
+  if ! grep -q "^%users ALL=(ALL) NOPASSWD: ALL" /etc/sudoers
   then
     echo -e "${LTCYAN}%users  ALL=(ALL) NOPASSWD: ALL${NC}"
     ${SUDO_CMD} echo "%users ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
