@@ -1,6 +1,6 @@
 #!/bin/bash
-# version: 1.0.0
-# date: 2019-07-17
+# version: 1.0.1
+# date: 2019-07-18
 
 CONFIG_DIR="./config"
 INCLUDE_DIR="./include"
@@ -41,7 +41,8 @@ set_colors() {
 }
 
 add_zypper_repos() {
-  echo -e "${LTBLUE}Addig zypper repositories${NC}"
+  echo -e "${LTBLUE}Adding zypper repositories${NC}"
+  echo -e "${LTBLUE}----------------------------------------------------${NC}"
 
   if ! grep -q "dl.google.com" /etc/zypp/repos.d/*.repo
   then
@@ -55,6 +56,7 @@ add_zypper_repos() {
 
 refresh_zypper_repos() {
   echo -e "${LTBLUE}Refreshing zypper repos${NC}"
+  echo -e "${LTBLUE}----------------------------------------------------${NC}"
   echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} zypper --no-gpg-checks --gpg-auto-import-keys ref${NC}"
   ${SUDO_CMD} zypper --no-gpg-checks --gpg-auto-import-keys ref
   echo
@@ -62,16 +64,18 @@ refresh_zypper_repos() {
 
 install_zypper_patterns() {
   echo -e "${LTBLUE}Installing zypper patterns${NC}"
+  echo -e "${LTBLUE}----------------------------------------------------${NC}"
   for PATTERN in ${ZYPPER_PATTERN_LIST}
   do
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} zypper -n --no-refresh install ${PATTERN}${NC}"
-    ${SUDO_CMD} zypper -n --no-refresh install ${PATTERN}
+    ${SUDO_CMD} zypper -n --no-refresh install -t pattern ${PATTERN}
   done
   echo
 }
 
 install_zypper_packages() {
   echo -e "${LTBLUE}Installing zypper packages${NC}"
+  echo -e "${LTBLUE}----------------------------------------------------${NC}"
   for PACKAGE in ${ZYPPER_PACKAGE_LIST}
   do
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} zypper -n --no-refresh install ${PACKAGE}${NC}"
@@ -84,6 +88,7 @@ install_extra_rpms() {
   if ls ${RPM_SRC_DIR} | grep -q ".rpm"
   then
     echo -e "${LTBLUE}Installing custom RPM packages${NC}"
+    echo -e "${LTBLUE}----------------------------------------------------${NC}"
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} rpm -U ${RPM_SRC_DIR}/*.rpm${NC}"
     ${SUDO_CMD} rpm -U ${RPM_SRC_DIR}/*.rpm
     echo
@@ -91,7 +96,9 @@ install_extra_rpms() {
 }
 
 configure_sudo() {
-  if ! $(which sudo) > /dev/null
+  echo -e "${LTBLUE}Configuring sudo${NC}"
+  echo -e "${LTBLUE}----------------------------------------------------${NC}"
+  if ! which sudo > /dev/null
   then
     echo -e "${LTCYAN}sudo Not Installed.  Installing ...${NC}"
     refresh_zypper_repos
@@ -100,7 +107,6 @@ configure_sudo() {
     echo
   fi
 
-  echo -e "${LTBLUE}Configuring sudo${NC}"
   if grep -q "^Defaults targetpw .*" /etc/sudoers
   then
     echo -e "${LTCYAN}#Defaults targetpw${NC}"
@@ -125,6 +131,7 @@ install_modprobe_config() {
   if ! [ -e /etc/modprobe.d/50-kvm.conf ]
   then
     echo -e "${LTBLUE}Installing modprobe configuration${NC}"
+    echo -e "${LTBLUE}----------------------------------------------------${NC}"
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/50-kvm.conf /etc/modprobe.d${NC}"
     ${SUDO_CMD} cp ${FILES_SRC_DIR}/50-kvm.conf /etc/modprobe.d
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} chown root.root /etc/modprobe.d/*${NC}"
@@ -135,6 +142,7 @@ install_modprobe_config() {
 
 configure_libvirt() {
   echo -e "${LTBLUE}Configuring Libvirt${NC}"
+  echo -e "${LTBLUE}----------------------------------------------------${NC}"
   # Change to UNIX socket based access and authorization
   echo -e "${LTCYAN}/etc/libvirt/libvirtd.conf:${NC}"
   echo -e "${LTCYAN}unix_socket_group = \"libvirt\"${NC}"
@@ -154,8 +162,8 @@ configure_libvirt() {
   ${SUDO_CMD} sed -i 's/^unix_sock_admin_perms.*/unix_sock_admin_perms = "0700"/' /etc/libvirt/libvirtd.conf
 
   echo -e "${LTCYAN}unix_sock_dir = \"/var/run/libvirt\"/${NC}"
-  ${SUDO_CMD} sed -i 's/^#unix_sock_dir.*/unix_sock_dir = "/var/run/libvirt"/' /etc/libvirt/libvirtd.conf
-  ${SUDO_CMD} sed -i 's/^unix_sock_dir.*/unix_sock_dir = "/var/run/libvirt"/' /etc/libvirt/libvirtd.conf
+  ${SUDO_CMD} sed -i 's+^#unix_sock_dir.*+unix_sock_dir = "/var/run/libvirt"+' /etc/libvirt/libvirtd.conf
+  ${SUDO_CMD} sed -i 's+^unix_sock_dir.*+unix_sock_dir = "/var/run/libvirt"+' /etc/libvirt/libvirtd.conf
 
   echo -e "${LTCYAN}auth_unix_ro = \"none\"${NC}"
   ${SUDO_CMD} sed -i 's/^#auth_unix_ro.*/auth_unix_ro = "none"/' /etc/libvirt/libvirtd.conf
@@ -203,13 +211,14 @@ install_labmachine_scripts() {
   if [ -e ${FILES_SRC_DIR}/labmachine_scripts.tgz ]
   then
     echo -e "${LTBLUE}Installing Labmachine Scripts${NC}"
+    echo -e "${LTBLUE}----------------------------------------------------${NC}"
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C / -xzf ${FILES_SRC_DIR}/labmachine_scripts.tgz ${NC}"
     ${SUDO_CMD} tar -C / -xzf ${FILES_SRC_DIR}/labmachine_scripts.tgz 
  
-    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} chown root.root /usr/local/bin/\*.sh${NC}"
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} chown root.root /usr/local/bin/*.sh${NC}"
     ${SUDO_CMD} chown root.root /usr/local/bin/*.sh
  
-    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} chmod +x /usr/local/bin/\*.sh${NC}"
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} chmod +x /usr/local/bin/*.sh${NC}"
     ${SUDO_CMD} chmod +x /usr/local/bin/*.sh
  
     echo
@@ -220,16 +229,17 @@ install_wallpapers() {
   if [ -e ${FILES_SRC_DIR}/wallpapers.tgz ]
   then
     echo -e "${LTBLUE}Installing Wallpapers${NC}"
+    echo -e "${LTBLUE}----------------------------------------------------${NC}"
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /usr/share -xzf ${FILES_SRC_DIR}/wallpapers.tgz ${NC}"
     ${SUDO_CMD} tar -C /usr/share -xzf ${FILES_SRC_DIR}/wallpapers.tgz 
  
-    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} chown root.root /usr/share/wallpapers/\*.png${NC}"
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} chown root.root /usr/share/wallpapers/*.png${NC}"
     ${SUDO_CMD} chown root.root /usr/share/wallpapers/*.png
  
-    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} chown root.root /usr/share/wallpapers/\*.jpg${NC}"
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} chown root.root /usr/share/wallpapers/*.jpg${NC}"
     ${SUDO_CMD} chown root.root /usr/share/wallpapers/*.jpg
  
-    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} chown root.root /usr/share/gnome-background-properties/\*.xml${NC}"
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} chown root.root /usr/share/gnome-background-properties/*.xml${NC}"
     ${SUDO_CMD} chown root.root /usr/share/gnome-background-properties/*.xml
  
     echo
@@ -238,13 +248,18 @@ install_wallpapers() {
 
 install_user_environment() {
   echo -e "${LTBLUE}Installing User Environments${NC}"
+  echo -e "${LTBLUE}----------------------------------------------------${NC}"
   USER_LIST=tux
   USERS_GROUP=users
 
   echo -e "${LTCYAN}/etc/skel/:${NC}"
   # GNOME
-  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /etc/skel/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}gnome-shell-extensions.tgz${NC}"
-  ${SUDO_CMD} tar -C /etc/skel/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}gnome-shell-extensions.tgz
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} mkdir -p /etc/skel/.local/share/gnome-shell/extensions${NC}"
+    mkdir -p /etc/skel/.local/share/gnome-shell/extensions
+  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /etc/skel/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}/gnome-shell-extensions.tgz${NC}"
+  ${SUDO_CMD} tar -C /etc/skel/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}/gnome-shell-extensions.tgz
+  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} mkdir -p /etc/skel/.config/dconf${NC}"
+  mkdir -p /etc/skel/.config/dconf
   echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/user /etc/skel/.config/dconf/${NC}"
   ${SUDO_CMD} cp ${FILES_SRC_DIR}/user /etc/skel/.config/dconf/
 
@@ -258,10 +273,10 @@ install_user_environment() {
   echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/mimeapps.list /etc/skel/.config/${NC}"
   ${SUDO_CMD} cp ${FILES_SRC_DIR}/mimeapps.list /etc/skel/.config/
 
-  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} chown -R root.root /home/${USER}/.local/*${NC}"
-  ${SUDO_CMD} chown -R root.root /home/${USER}/.local/*
-  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} chown -R root.root /home/${USER}/.config/*${NC}"
-  ${SUDO_CMD} chown -R root.root /home/${USER}/.config/*
+  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} chown -R root.root /home/${USER}/.local${NC}"
+  ${SUDO_CMD} chown -R root.root /home/${USER}/.local
+  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} chown -R root.root /home/${USER}/.config${NC}"
+  ${SUDO_CMD} chown -R root.root /home/${USER}/.config
 
   echo
 
@@ -269,23 +284,27 @@ install_user_environment() {
   do
     echo -e "${LTCYAN}/home/${USER}/:${NC}"
     # GNOME
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} mkdir -p /home/${USER}/.local/share/gnome-shell/extensions${NC}"
+    mkdir -p /home/${USER}/.local/share/gnome-shell/extensions
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /home/${USER}/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}/gnome-shell-extensions.tgz${NC}"
     ${SUDO_CMD} tar -C /home/${USER}/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}/gnome-shell-extensions.tgz
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} mkdir -p /home/${USER}/.config/dconf${NC}"
+    mkdir -p /home/${USER}/.config/dconf
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/user /home/${USER}/.config/dconf/${NC}"
     ${SUDO_CMD} cp ${FILES_SRC_DIR}/user /home/${USER}/.config/dconf/
     # XFCE4
-    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /home/${USER}/.config/ -xvf ${FILES_SRC_DIR}xfce4.tgz${NC}"
-    ${SUDO_CMD} tar -C /home/${USER}/.config/ -xvf ${FILES_SRC_DIR}xfce4.tgz
-    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /home/${USER}/.config/ -xvf ${FILES_SRC_DIR}Thunar.tgz${NC}"
-    ${SUDO_CMD} tar -C /home/${USER}/.config/ -xvf ${FILES_SRC_DIR}Thunar.tgz
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /home/${USER}/.config/ -xvf ${FILES_SRC_DIR}/xfce4.tgz${NC}"
+    ${SUDO_CMD} tar -C /home/${USER}/.config/ -xvf ${FILES_SRC_DIR}/xfce4.tgz
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /home/${USER}/.config/ -xvf ${FILES_SRC_DIR}/Thunar.tgz${NC}"
+    ${SUDO_CMD} tar -C /home/${USER}/.config/ -xvf ${FILES_SRC_DIR}/Thunar.tgz
     # mime
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/mimeapps.list /home/${USER}/.config/${NC}"
     ${SUDO_CMD} cp ${FILES_SRC_DIR}/mimeapps.list /home/${USER}/.config/
 
-    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} chown -R ${USER}.${USERS_GROUP} /home/${USER}/.local/*${NC}"
-    ${SUDO_CMD} chown -R ${USER}.${USERS_GROUP} /home/${USER}/.local/*
-    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} chown -R ${USER}.${USERS_GROUP} /home/${USER}/.config/*${NC}"
-    ${SUDO_CMD} chown -R ${USER}.${USERS_GROUP} /home/${USER}/.config/*
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} chown -R ${USER}.${USERS_GROUP} /home/${USER}/.local${NC}"
+    ${SUDO_CMD} chown -R ${USER}.${USERS_GROUP} /home/${USER}/.local
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} chown -R ${USER}.${USERS_GROUP} /home/${USER}/.config${NC}"
+    ${SUDO_CMD} chown -R ${USER}.${USERS_GROUP} /home/${USER}/.config
 
     echo
   done
@@ -293,6 +312,7 @@ install_user_environment() {
 
 configure_displaymanager() {
   echo -e "${LTBLUE}Configure the Display Manager${NC}"
+  echo -e "${LTBLUE}----------------------------------------------------${NC}"
 
   echo -e "${LTCYAN}DISPLAYMANAGER_XSERVER="Xorg"${NC}"
   ${SUDO_CMD} sed -i 's/^DISPLAYMANAGER_XSERVER=.*/DISPLAYMANAGER_XSERVER="Xorg"/' /etc/systeconfig/displaymanager
@@ -308,6 +328,7 @@ configure_displaymanager() {
 
 enable_services() {
   echo -e "${LTBLUE}Enabling/Starting Services${NC}"
+  echo -e "${LTBLUE}----------------------------------------------------${NC}"
   for SERVICE in ${ENABLED_SERVICES_LIST}
   do
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} systemctl enable ${SERVICE}${NC}"
@@ -350,11 +371,16 @@ main() {
     
   fi
 
+  echo -e "${LTBLUE}########################################################################${NC}"
+  echo -e "${LTBLUE}                Configuring Machine As a Lab Machine${NC}"
+  echo -e "${LTBLUE}########################################################################${NC}"
+  echo
+
   configure_sudo
   add_zypper_repos
   refresh_zypper_repos
   install_zypper_patterns
-  install_zypper_package
+  install_zypper_packages
   install_extra_rpms
   install_modprobe_config
   configure_libvirt
