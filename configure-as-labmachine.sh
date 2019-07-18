@@ -265,9 +265,13 @@ install_user_environment() {
 
   echo -e "${LTCYAN}/etc/skel/:${NC}"
   echo -e "${LTCYAN}----------------------${NC}"
+  # Xsession
+  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} echo \"gnome-session\" >> /etc/skel/.xsession${NC}"
+  echo "gnome-session" >> /etc/skel/.xsession
+
   # GNOME
-    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} mkdir -p /etc/skel/.local/share/gnome-shell/extensions${NC}"
-    mkdir -p /etc/skel/.local/share/gnome-shell/extensions
+  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} mkdir -p /etc/skel/.local/share/gnome-shell/extensions${NC}"
+  mkdir -p /etc/skel/.local/share/gnome-shell/extensions
   echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /etc/skel/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}/gnome-shell-extensions.tgz${NC}"
   ${SUDO_CMD} tar -C /etc/skel/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}/gnome-shell-extensions.tgz
   echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} mkdir -p /etc/skel/.config/dconf${NC}"
@@ -289,9 +293,13 @@ install_user_environment() {
 
   echo -e "${LTCYAN}/root/:${NC}"
   echo -e "${LTCYAN}----------------------${NC}"
+  # Xsession
+  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} echo \"gnome-session\" >> /root/.xsession${NC}"
+  echo "gnome-session" >> /root/.xsession
+
   # GNOME
-    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} mkdir -p /root/.local/share/gnome-shell/extensions${NC}"
-    mkdir -p /root/.local/share/gnome-shell/extensions
+  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} mkdir -p /root/.local/share/gnome-shell/extensions${NC}"
+  mkdir -p /root/.local/share/gnome-shell/extensions
   echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /root/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}/gnome-shell-extensions.tgz${NC}"
   ${SUDO_CMD} tar -C /root/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}/gnome-shell-extensions.tgz
   echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} mkdir -p /root/.config/dconf${NC}"
@@ -315,6 +323,10 @@ install_user_environment() {
   do
     echo -e "${LTCYAN}/home/${USER}/:${NC}"
     echo -e "${LTCYAN}----------------------${NC}"
+    # Xsession
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} echo \"gnome-session\" >> /home/${USER}/.xsession${NC}"
+    echo "gnome-session" >> /home/${USER}/.xsession
+
     # GNOME
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} mkdir -p /home/${USER}/.local/share/gnome-shell/extensions${NC}"
     mkdir -p /home/${USER}/.local/share/gnome-shell/extensions
@@ -349,19 +361,19 @@ configure_displaymanager() {
   echo -e "${LTCYAN}DISPLAYMANAGER_XSERVER="Xorg"${NC}"
   ${SUDO_CMD} sed -i 's/^DISPLAYMANAGER_XSERVER=.*/DISPLAYMANAGER_XSERVER="Xorg"/' /etc/sysconfig/displaymanager
 
-  echo -e "${LTCYAN}DISPLAYMANAGER="gdm"${NC}"
-  ${SUDO_CMD} sed -i 's/^DISPLAYMANAGER=.*/DISPLAYMANAGER="gdm"/' /etc/sysconfig/displaymanager
+  echo -e "${LTCYAN}DISPLAYMANAGER=\"${DEFAULT_DISPLAYMANAGER}\"${NC}"
+  ${SUDO_CMD} sed -i "s/^DISPLAYMANAGER=.*/DISPLAYMANAGER=\"${DEFAULT_DISPLAYMANAGER}\"/" /etc/sysconfig/displaymanager
 
   echo -e "${LTCYAN}DISPLAYMANAGER_STARTS_XSERVER="yes"${NC}"
   ${SUDO_CMD} sed -i 's/^DISPLAYMANAGER_STARTS_XSERVER=.*/DISPLAYMANAGER_STARTS_XSERVER="yes"/' /etc/sysconfig/displaymanager
 
-  echo -e "${LTCYAN}DEFAULT_WM="gnome"${NC}"
-  ${SUDO_CMD} sed -i 's/^DEFAULT_WM=.*/DEFAULT_WM="gnome"/' /etc/sysconfig/displaymanager
+  echo -e "${LTCYAN}DEFAULT_WM="${DEFAULT_XSESSION}"${NC}"
+  ${SUDO_CMD} sed -i "s/^DEFAULT_WM=.*/DEFAULT_WM=\"${DEFAULT_XSESSION}\"/" /etc/sysconfig/displaymanager
 
-  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDU_CMD} update-alternatives --set default-displaymanager /usr/lib/X11/displaymanagers/gdm ${NC}"
-  ${SUDU_CMD} update-alternatives --set default-displaymanager /usr/lib/X11/displaymanagers/gdm 
-  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDU_CMD} update-alternatives --set default-xsession.desktop /usr/share/xsessions/gnome.desktop${NC}"
-  ${SUDU_CMD} update-alternatives --set default-xsession.desktop /usr/share/xsessions/gnome.desktop
+  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDU_CMD} update-alternatives --set default-displaymanager /usr/lib/X11/displaymanagers/${DEFAULT_DISPLAYMANAGER} ${NC}"
+  ${SUDU_CMD} update-alternatives --set default-displaymanager /usr/lib/X11/displaymanagers/${DEFAULT_DISPLAYMANAGER} 
+  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDU_CMD} update-alternatives --set default-xsession.desktop /usr/share/xsessions/${DEFAULT_XSESSION}.desktop${NC}"
+  ${SUDU_CMD} update-alternatives --set default-xsession.desktop /usr/share/xsessions/${DEFAULT_XSESSION}.desktop
  
   echo
 }
