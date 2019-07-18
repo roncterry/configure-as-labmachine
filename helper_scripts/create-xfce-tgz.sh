@@ -36,16 +36,16 @@ fi
 
 echo -e "${LTGREEN}COMMAND:${GRAY}  cd ~/.config${NC}"
 cd ~/.config
-echo -e "${LTGREEN}COMMAND:${GRAY}  tar czf xfce.tgz xfce4${NC}"
-tar czf xfce.tgz xfce4
+echo -e "${LTGREEN}COMMAND:${GRAY}  tar czf xfce4.tgz xfce4${NC}"
+tar czf xfce4.tgz xfce4
 echo -e "${LTGREEN}COMMAND:${GRAY}  tar czf Thunar.tgz Thunar ${NC}"
 tar czf Thunar.tgz Thunar 
 
 echo -e "${LTGREEN}COMMAND:${GRAY}  cd -${NC}"
 cd - > /dev/null 2>&1
 
-echo -e "${LTGREEN}COMMAND:${GRAY}  mv ~/.config/xfce.tgz ../files/${NC}"
-mv ~/.config/xfce.tgz ../files/
+echo -e "${LTGREEN}COMMAND:${GRAY}  mv ~/.config/xfce4.tgz ../files/${NC}"
+mv ~/.config/xfce4.tgz ../files/
 echo -e "${LTGREEN}COMMAND:${GRAY}  mv ~/.config/Thunar.tgz ../files/${NC}"
 mv ~/.config/Thunar.tgz ../files/
 
