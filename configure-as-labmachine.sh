@@ -58,7 +58,7 @@ add_zypper_repos() {
       echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} rpm --import linux_signing_key.pub${NC}"
       ${SUDO_CMD} rpm --import linux_signing_key.pub
       echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} cd -${NC}"
-      ${SUDO_CMD} cd -
+      ${SUDO_CMD} cd - > /dev/null
     fi
   fi
 
