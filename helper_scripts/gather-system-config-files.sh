@@ -26,15 +26,17 @@ export NC='\e[0m'
 
 ##############################################################################
 
-echo -e "${LTBLUE}Building Files Source Directory ...${NC}"
-echo
+echo -e "${LTCYAN}Gathering user environment files ...${NC}"
 
-. gather-system-config-files.sh
-. gather-user-environment-files.sh
-. create-gnome-shell-extensions-tgz.sh
-. create-xfce-tgz.sh
-. create-labmachine-scripts-tgz.sh
-. create-wallpapers-tgz.sh
+if [ -e ../files ]
+then
+  echo -e "${LTGREEN}COMMAND:  ${GRAY}mkdir -p ../files${NC}"
+  mkdir -p ../files
+fi
 
-echo -e "${LTBLUE}--Finished--${NC}"
+echo -e "${LTGREEN}COMMAND:${GRAY}  cp /etc/modprobe.d/50-kvm.conf ../files/${NC}"
+cp /etc/modprobe.d/50-kvm.conf ../files/
+echo -e "${LTGREEN}COMMAND:${GRAY}  cp /etc/profile.d/libvirt.sh ../files/${NC}"
+cp /etc/profile.d/libvirt.sh ../files/
+
 echo
