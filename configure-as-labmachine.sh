@@ -49,6 +49,17 @@ add_zypper_repos() {
     echo -e "${LTCYAN}google-chrome${NC}"
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} zypper addrepo http://dl.google.com/linux/chrome/rpm/stable/x86_64 google-chrome${NC}"
     ${SUDO_CMD} zypper addrepo http://dl.google.com/linux/chrome/rpm/stable/x86_64 google-chrome
+    if ! [ -e ${FILES_SRC_DIR}/linux_signing_key.pub ]
+    then
+      echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} cd ${FILES_SRC_DIR}${NC}"
+      ${SUDO_CMD} cd ${FILES_SRC_DIR}
+      echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} wget https://dl.google.com/linux/linux_signing_key.pub${NC}"
+      ${SUDO_CMD} wget https://dl.google.com/linux/linux_signing_key.pub
+      echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} rpm --import linux_signing_key.pub${NC}"
+      ${SUDO_CMD} rpm --import linux_signing_key.pub
+      echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} cd -${NC}"
+      ${SUDO_CMD} cd -
+    fi
   fi
 
   echo
@@ -79,7 +90,7 @@ install_zypper_packages() {
   for PACKAGE in ${ZYPPER_PACKAGE_LIST}
   do
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} zypper -n --no-refresh install ${PACKAGE}${NC}"
-    ${SUDO_CMD} zypper -n --no-refresh install ${PACKAGE}
+    ${SUDO_CMD} zypper -n --no-refresh install -l ${PACKAGE}
   done
   echo
 }
