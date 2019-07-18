@@ -366,8 +366,8 @@ enable_services() {
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} systemctl enable ${SERVICE}${NC}"
     ${SUDO_CMD} systemctl enable ${SERVICE}
 
-    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} systemctl start ${SERVICE}${NC}"
-    ${SUDO_CMD} systemctl start ${SERVICE}
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} systemctl restart ${SERVICE}${NC}"
+    ${SUDO_CMD} systemctl restart ${SERVICE}
 
    echo
   done
