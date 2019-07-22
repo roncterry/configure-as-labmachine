@@ -1,7 +1,7 @@
 #!/bin/bash
 #
-# version: 1.0.0
-# date: 2019-07-16
+# version: 1.0.1
+# date: 2019-07-22
 
 #############################################################################
 #                         Global Variables
@@ -196,9 +196,11 @@ partition_format_courses_dev() {
   if echo ${COURSES_DIR_DEV} | grep -o "[1-9]$"
   then
     format_courses_dev
-  elif ! echo ${COURSES_DIR_DEV} | grep -o "[1-9]$"
-  then
-    if ! parted -l | grep -q "Partition Table:"
+#  elif ! echo ${COURSES_DIR_DEV} | grep -o "[1-9]$"
+#  then
+#    if ! parted -l | grep -q "Partition Table:"
+  else
+    if parted -l 2> /dev/null | grep -A 2 ${COURSES_DIR_DEV} | grep -q "Partition Table: unknown"
     then
       create_partition_table
     fi

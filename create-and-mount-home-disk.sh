@@ -1,7 +1,7 @@
 #!/bin/bash
 #
-# version: 1.0.0
-# date: 2019-07-16
+# version: 1.0.1
+# date: 2019-07-22
 
 #############################################################################
 #                         Global Variables
@@ -243,7 +243,7 @@ update_fstab_for_home() {
     echo
     echo -e ${LTBLUE}"Updating the /etc/fstab for LABEL=HOME ..."${NC}
     echo -e ${LTPURPLE}"LABEL=HOME  /home  auto  defaults,nofail,x-systemd.device-timeout=1  0 0"${NC}
-    echo "LABEL=HOME  /home  auto  defaults,nofail,x-systemd.device-timeout=1  0 0" >> /etc/fstab${NC}
+    echo "LABEL=HOME  /home  auto  defaults,nofail,x-systemd.device-timeout=1  0 0" >> /etc/fstab
   fi
 }
 
@@ -251,9 +251,11 @@ partition_format_home_dev() {
   if echo ${HOME_DIR_DEV} | grep -o "[1-9]$"
   then
     format_home_dev
-  elif ! echo ${HOME_DIR_DEV} | grep -o "[1-9]$"
-  then
-    if ! parted -l | grep -q "Partition Table:"
+#  elif ! echo ${HOME_DIR_DEV} | grep -o "[1-9]$"
+#  then
+#    if ! parted -l | grep -q "Partition Table:"
+  else
+    if parted -l 2> /dev/null | grep -A 2 ${HOME_DIR_DEV} | grep -q "Partition Table: unknown"
     then
       create_partition_table
     fi
