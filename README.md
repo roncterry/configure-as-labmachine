@@ -4,7 +4,8 @@ Download this project into an openSUSE Leap 15.0/15.1/15.2, openSUSE Tumbleweed 
 
 Once the machine has been configured as a lab machine, if there are additional disk attached, the `create-and-mount-courses-disk.sh` and `create-and-mount-home-disk.sh` scripts can be used to automatically partition/format and then mount the additional disks on `/install/courses` and `/home` in the case that the additional disk space is needed for the lab environments to be installed and run (i.e. as in Azure).
 
-Note:  This automatically adds the following software repositories:
+
+**Note**:  This automatically adds the following software repositories:
 
   * google-chrome
   * Cloud:Tools
