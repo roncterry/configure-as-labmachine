@@ -1,6 +1,6 @@
 #!/bin/bash
-# version: 1.0.1
-# date: 2019-07-18
+# version: 1.2.0
+# date: 2020-04-02
 
 CONFIG_DIR="./config"
 INCLUDE_DIR="./include"
@@ -8,8 +8,27 @@ INCLUDE_DIR="./include"
 FILES_SRC_DIR="files"
 RPM_SRC_DIR="rpm"
 
+normalize_distro_names() {
+  case ${ID} in
+    sles)
+      DISTRO_NAME=SLE_$(echo ${VERSION} | sed 's/-/_/g')
+    ;;
+    *)
+      if echo ${PRETTY_NAME} | grep -iq beta
+      then
+        DISTRO_NAME=$(echo ${PRETTY_NAME} | sed 's/ /_/g' | sed 's/_Beta//g' | sed 's/_beta//g')
+      else
+        DISTRO_NAME=$(echo ${PRETTY_NAME} | sed 's/ /_/g')
+      fi
+    ;;
+  esac
+}
+
+source /etc/os-release
+normalize_distro_names
+
 source ${CONFIG_DIR}/configure-as-labmachine.cfg
-source ${CONFIG_DIR}/*.sh
+source ${INCLUDE_DIR}/*.sh
 
 #############################################################################
 
@@ -62,6 +81,18 @@ add_zypper_repos() {
     fi
   fi
 
+  for REPO in ${ZYPPER_REPO_LIST}
+  do
+    REPO_URL="$(echo ${REPO} | cut -d , -f 1)"
+    REPO_NAME="$(echo ${REPO} | cut -d , -f 2)"
+
+    echo -e "${LTCYAN}${REPO_NAME}${NC}"
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} zypper addrepo ${REPO_URL} ${REPO_NAME}${NC}"
+    ${SUDO_CMD} zypper addrepo ${REPO_URL} ${REPO_NAME}
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} zypper modifyrepo -e -F ${REPO_NAME}${NC}"
+    ${SUDO_CMD} zypper modifyrepo -e -F ${REPO_NAME}
+  done
+
   echo
 }
 
@@ -69,7 +100,7 @@ refresh_zypper_repos() {
   echo -e "${LTBLUE}Refreshing zypper repos${NC}"
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
   echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} zypper --no-gpg-checks --gpg-auto-import-keys ref${NC}"
-  ${SUDO_CMD} zypper --no-gpg-checks --gpg-auto-import-keys ref
+  ${SUDO_CMD} zypper --gpg-auto-import-keys ref
   echo
 }
 
@@ -93,6 +124,20 @@ install_zypper_packages() {
     ${SUDO_CMD} zypper -n --no-refresh install -l ${PACKAGE}
   done
   echo
+}
+
+install_custom_remote_zypper_packages() {
+  if ! [ -z ${CUSTOM_REMOTE_ZYPPER_PACKAGES} ]
+  then
+    echo -e "${LTBLUE}Installing custom remote zypper packages${NC}"
+    echo -e "${LTBLUE}----------------------------------------------------${NC}"
+    for PACKAGE in ${CUSTOM_REMOTE_PACKAGE_LIST}
+    do
+      echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} zypper -n --no-refresh install ${PACKAGE}${NC}"
+      ${SUDO_CMD} zypper -n --no-refresh install -l ${PACKAGE}
+    done
+    echo
+  fi
 }
 
 install_extra_rpms() {
@@ -272,12 +317,12 @@ install_user_environment() {
   # GNOME
   echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} mkdir -p /etc/skel/.local/share/gnome-shell/extensions${NC}"
   mkdir -p /etc/skel/.local/share/gnome-shell/extensions
-  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /etc/skel/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}/gnome-shell-extensions.tgz${NC}"
-  ${SUDO_CMD} tar -C /etc/skel/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}/gnome-shell-extensions.tgz
+  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /etc/skel/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}/gnome-shell-extensions.${DISTRO_NAME}.tgz${NC}"
+  ${SUDO_CMD} tar -C /etc/skel/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}/gnome-shell-extensions.${DISTRO_NAME}.tgz
   echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} mkdir -p /etc/skel/.config/dconf${NC}"
   mkdir -p /etc/skel/.config/dconf
-  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/user /etc/skel/.config/dconf/${NC}"
-  ${SUDO_CMD} cp ${FILES_SRC_DIR}/user /etc/skel/.config/dconf/
+  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/user.${DISTRO_NAME} /etc/skel/.config/dconf/user${NC}"
+  ${SUDO_CMD} cp ${FILES_SRC_DIR}/user.${DISTRO_NAME} /etc/skel/.config/dconf/user
 
   # XFCE4
   echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /etc/skel/.config/ -xzf ${FILES_SRC_DIR}/xfce4.tgz${NC}"
@@ -300,12 +345,12 @@ install_user_environment() {
   # GNOME
   echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} mkdir -p /root/.local/share/gnome-shell/extensions${NC}"
   mkdir -p /root/.local/share/gnome-shell/extensions
-  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /root/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}/gnome-shell-extensions.tgz${NC}"
-  ${SUDO_CMD} tar -C /root/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}/gnome-shell-extensions.tgz
+  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /root/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}/gnome-shell-extensions.${DISTRO_NAME}.tgz${NC}"
+  ${SUDO_CMD} tar -C /root/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}/gnome-shell-extensions.${DISTRO_NAME}.tgz
   echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} mkdir -p /root/.config/dconf${NC}"
   mkdir -p /root/.config/dconf
-  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/user /root/.config/dconf/${NC}"
-  ${SUDO_CMD} cp ${FILES_SRC_DIR}/user /root/.config/dconf/
+  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/user.${DISTRO_NAME} /root/.config/dconf/user${NC}"
+  ${SUDO_CMD} cp ${FILES_SRC_DIR}/user.${DISTRO_NAME} /root/.config/dconf/user
 
   # XFCE4
   echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /root/.config/ -xzf ${FILES_SRC_DIR}/xfce4.tgz${NC}"
@@ -330,17 +375,19 @@ install_user_environment() {
     # GNOME
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} mkdir -p /home/${USER}/.local/share/gnome-shell/extensions${NC}"
     mkdir -p /home/${USER}/.local/share/gnome-shell/extensions
-    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /home/${USER}/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}/gnome-shell-extensions.tgz${NC}"
-    ${SUDO_CMD} tar -C /home/${USER}/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}/gnome-shell-extensions.tgz
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /home/${USER}/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}/gnome-shell-extensions.${DISTRO_NAME}.tgz${NC}"
+    ${SUDO_CMD} tar -C /home/${USER}/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}/gnome-shell-extensions.${DISTRO_NAME}.tgz
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} mkdir -p /home/${USER}/.config/dconf${NC}"
     mkdir -p /home/${USER}/.config/dconf
-    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/user /home/${USER}/.config/dconf/${NC}"
-    ${SUDO_CMD} cp ${FILES_SRC_DIR}/user /home/${USER}/.config/dconf/
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/user.${DISTRO_NAME} /home/${USER}/.config/dconf/user${NC}"
+    ${SUDO_CMD} cp ${FILES_SRC_DIR}/user.${DISTRO_NAME} /home/${USER}/.config/dconf/user
+
     # XFCE4
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /home/${USER}/.config/ -xzf ${FILES_SRC_DIR}/xfce4.tgz${NC}"
     ${SUDO_CMD} tar -C /home/${USER}/.config/ -xzf ${FILES_SRC_DIR}/xfce4.tgz
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /home/${USER}/.config/ -xzf ${FILES_SRC_DIR}/Thunar.tgz${NC}"
     ${SUDO_CMD} tar -C /home/${USER}/.config/ -xzf ${FILES_SRC_DIR}/Thunar.tgz
+
     # mime
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/mimeapps.list /home/${USER}/.config/${NC}"
     ${SUDO_CMD} cp ${FILES_SRC_DIR}/mimeapps.list /home/${USER}/.config/
@@ -395,6 +442,25 @@ enable_services() {
   done
 }
 
+update_virtualbox_extensions() {
+  if rpm -qa | grep -q virtualbox
+  then
+    echo -e "${LTBLUE}Installing Virtualbox Extension Pack${NC}"
+    echo -e "${LTBLUE}----------------------------------------------------${NC}"
+    VBOX_VER="$(rpm -q virtualbox | cut -d \- -f 2)"
+ 
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} cd ${FILES_SRC_DIR}${NC}"
+    ${SUDO_CMD} cd ${FILES_SRC_DIR}
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} wget https://download.virtualbox.org/virtualbox/${VBOX_VER}/Oracle_VM_VirtualBox_Extension_Pack-${VBOX_VER}.vbox-extpack${NC}"
+    ${SUDO_CMD} wget https://download.virtualbox.org/virtualbox/${VBOX_VER}/Oracle_VM_VirtualBox_Extension_Pack-${VBOX_VER}.vbox-extpack
+    echo -e "${LTGREEN}COMMAND:${GRAY}  echo y | ${SUDO_CMD} /usr/bin/VBoxManage extpack install --replace ${FILES_SRC_DIR}/*.vbox-extpack${NC}"
+    echo y | ${SUDO_CMD} /usr/bin/VBoxManage extpack install --replace ${FILES_SRC_DIR}/*.vbox-extpack
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} cd -${NC}"
+    ${SUDO_CMD} cd - > /dev/null
+    echo
+  fi
+}
+
 #############################################################################
 
 main() {
@@ -435,10 +501,12 @@ main() {
   refresh_zypper_repos
   install_zypper_patterns
   install_zypper_packages
+  install_custom_remote_zypper_packages
   install_extra_rpms
   install_modprobe_config
   configure_libvirt
   install_labmachine_scripts
+  update_virtualbox_extensions
   install_wallpapers
   install_user_environment
   configure_displaymanager
