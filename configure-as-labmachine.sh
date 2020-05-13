@@ -1,6 +1,6 @@
 #!/bin/bash
-# version: 1.2.0
-# date: 2020-04-02
+# version: 1.3.0
+# date: 2020-05-13
 
 CONFIG_DIR="./config"
 INCLUDE_DIR="./include"
@@ -248,6 +248,38 @@ configure_libvirt() {
   echo -e "${LTCYAN}spice_listen = \"0.0.0.0\"${NC}"
   ${SUDO_CMD} sed -i 's/^#spice_listen.*/spice_listen = "0.0.0.0"/' /etc/libvirt/qemu.conf
   ${SUDO_CMD} sed -i 's/^spice_listen.*/spice_listen = "0.0.0.0"/' /etc/libvirt/qemu.conf
+
+  echo
+  # Enable VM susepend on shutdown and resume on power on
+  echo -e "${LTCYAN}/etc/sysconfig/libvirt-guests:${NC}"
+  echo -e "${LTCYAN}ON_BOOT=start${NC}"
+  ${SUDO_CMD} sed -i 's/^#ON_BOOT.*/ON_BOOT=start' /etc/sysconfig/libvirt-guests
+  ${SUDO_CMD} sed -i 's/^ON_BOOT.*/ON_BOOT=start' /etc/sysconfig/libvirt-guests
+
+  echo -e "${LTCYAN}/etc/sysconfig/libvirt-guests:${NC}"
+  echo -e "${LTCYAN}START_DELAY=0${NC}"
+  ${SUDO_CMD} sed -i 's/^#START_DELAY.*/START_DELAY=0' /etc/sysconfig/libvirt-guests
+  ${SUDO_CMD} sed -i 's/^START_DELAY.*/START_DELAY=0' /etc/sysconfig/libvirt-guests
+
+  echo -e "${LTCYAN}/etc/sysconfig/libvirt-guests:${NC}"
+  echo -e "${LTCYAN}ON_SHUTDOWN=suspend${NC}"
+  ${SUDO_CMD} sed -i 's/^#ON_SHUTDOWN.*/ON_SHUTDOWN=suspend' /etc/sysconfig/libvirt-guests
+  ${SUDO_CMD} sed -i 's/^ON_SHUTDOWN.*/ON_SHUTDOWN=suspend' /etc/sysconfig/libvirt-guests
+
+  echo -e "${LTCYAN}/etc/sysconfig/libvirt-guests:${NC}"
+  echo -e "${LTCYAN}PARALLEL_SHUTDOWN=20${NC}"
+  ${SUDO_CMD} sed -i 's/^#PARALLEL_SHUTDOWN.*/PARALLEL_SHUTDOWN=20' /etc/sysconfig/libvirt-guests
+  ${SUDO_CMD} sed -i 's/^PARALLEL_SHUTDOWN.*/PARALLEL_SHUTDOWN=20' /etc/sysconfig/libvirt-guests
+
+  echo -e "${LTCYAN}/etc/sysconfig/libvirt-guests:${NC}"
+  echo -e "${LTCYAN}BYPASS_CACHE=0${NC}"
+  ${SUDO_CMD} sed -i 's/^#BYPASS_CACHE.*/BYPASS_CACHE=0' /etc/sysconfig/libvirt-guests
+  ${SUDO_CMD} sed -i 's/^BYPASS_CACHE.*/BYPASS_CACHE=0' /etc/sysconfig/libvirt-guests
+
+  echo -e "${LTCYAN}/etc/sysconfig/libvirt-guests:${NC}"
+  echo -e "${LTCYAN}SYNC_TIME=1${NC}"
+  ${SUDO_CMD} sed -i 's/^#SYNC_TIME.*/SYNC_TIME=1' /etc/sysconfig/libvirt-guests
+  ${SUDO_CMD} sed -i 's/^SYNC_TIME.*/SYNC_TIME=1' /etc/sysconfig/libvirt-guests
 
   echo
 
