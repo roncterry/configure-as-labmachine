@@ -36,8 +36,8 @@ fi
 
 echo -e "${LTGREEN}COMMAND:${GRAY}  cd /usr/share${NC}"
 cd /usr/share
-echo -e "${LTGREEN}COMMAND:${GRAY}  sudo tar czf wallpapers.tgz gnome-background-properties/suse_wallpapers.xml gnome-background-properties/dark_wallpapers.xml wallpapers/\*_suse.png wallpapers/dark_\*.jpg${NC}"
-sudo tar czf wallpapers.tgz gnome-background-properties/suse_wallpapers.xml gnome-background-properties/dark_wallpapers.xml wallpapers/*_suse.png wallpapers/dark_*.jpg
+echo -e "${LTGREEN}COMMAND:${GRAY}  sudo tar czf wallpapers.tgz gnome-background-properties/suse_wallpapers*.xml gnome-background-properties/dark_wallpapers.xml wallpapers/\*_suse.png wallpapers/dark_\*.jpg${NC}"
+sudo tar czf wallpapers.tgz gnome-background-properties/suse_wallpapers*.xml gnome-background-properties/dark_wallpapers.xml wallpapers/*_suse.png wallpapers/dark_*.jpg
 
 echo -e "${LTGREEN}COMMAND:${GRAY}  cd -${NC}"
 cd - > /dev/null 2>&1
