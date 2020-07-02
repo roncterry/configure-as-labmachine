@@ -1,6 +1,6 @@
 #!/bin/bash
-# version: 1.3.0
-# date: 2020-05-13
+# version: 1.4.0
+# date: 2020-07-02
 
 CONFIG_DIR="./config"
 INCLUDE_DIR="./include"
@@ -313,6 +313,25 @@ install_labmachine_scripts() {
   fi
 }
 
+install_image_building_tools() {
+  if [ -e ${FILES_SRC_DIR}/image_building.tgz ]
+  then
+    echo -e "${LTBLUE}Installing Image Building Tools${NC}"
+    echo -e "${LTBLUE}----------------------------------------------------${NC}"
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /opt -xzf ${FILES_SRC_DIR}/image_building.tgz ${NC}"
+    ${SUDO_CMD} tar -C /opt -xzf ${FILES_SRC_DIR}/image_building.tgz 
+ 
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} chown root.root /opt/image_building${NC}"
+    ${SUDO_CMD} chown root.root /opt/image_building
+ 
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} chmod +x /opt/image_building/*.sh${NC}"
+    ${SUDO_CMD} chmod +x /opt/image_building/*.sh
+ 
+    echo
+  fi
+}
+
+
 install_wallpapers() {
   if [ -e ${FILES_SRC_DIR}/wallpapers.tgz ]
   then
@@ -538,6 +557,7 @@ main() {
   install_modprobe_config
   configure_libvirt
   install_labmachine_scripts
+  install_image_building_tools
   update_virtualbox_extensions
   install_wallpapers
   install_user_environment
