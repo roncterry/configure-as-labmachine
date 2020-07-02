@@ -43,6 +43,7 @@ echo -e "${LTGREEN}COMMAND:${GRAY}  cd -${NC}"
 cd - > /dev/null 2>&1
 
 echo -e "${LTGREEN}COMMAND:${GRAY}  sudo mv /labmachine-scripts.tgz ../files/${NC}"
-sudo mv /labmachine-scripts.tgz ../files/
+cp /labmachine-scripts.tgz ../files/
+sudo rm /labmachine-scripts.tgz ../files/
 
 echo

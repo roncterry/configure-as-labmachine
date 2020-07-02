@@ -34,6 +34,7 @@ echo
 . create-gnome-shell-extensions-tgz.sh
 . create-xfce-tgz.sh
 . create-labmachine-scripts-tgz.sh
+. create-image_building-tgz.sh
 . create-wallpapers-tgz.sh
 
 echo -e "${LTBLUE}--Finished--${NC}"

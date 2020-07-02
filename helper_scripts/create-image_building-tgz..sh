@@ -26,7 +26,7 @@ export NC='\e[0m'
 
 ##############################################################################
 
-echo -e "${LTCYAN}Creating wallpapers.tgz ...${NC}"
+echo -e "${LTCYAN}Creating image_building.tgz ...${NC}"
 
 if [ -e ../files ]
 then
@@ -34,16 +34,16 @@ then
   mkdir -p ../files
 fi
 
-echo -e "${LTGREEN}COMMAND:${GRAY}  cd /usr/share${NC}"
-cd /usr/share
-echo -e "${LTGREEN}COMMAND:${GRAY}  sudo tar czf wallpapers.tgz gnome-background-properties/suse_wallpapers*.xml gnome-background-properties/dark_wallpapers.xml wallpapers/\*_suse.png wallpapers/dark_\*.jpg${NC}"
-sudo tar czf wallpapers.tgz gnome-background-properties/suse_wallpapers*.xml gnome-background-properties/dark_wallpapers.xml wallpapers/*_suse.png wallpapers/dark_*.jpg
+echo -e "${LTGREEN}COMMAND:${GRAY}  cd /${NC}"
+cd /opt
+echo -e "${LTGREEN}COMMAND:${GRAY}  sudo tar czf image_building.tgz image_building${NC}"
+sudo tar czf image_building.tgz image_building
 
 echo -e "${LTGREEN}COMMAND:${GRAY}  cd -${NC}"
 cd - > /dev/null 2>&1
 
-echo -e "${LTGREEN}COMMAND:${GRAY}  sudo mv /usr/share/wallpapers.tgz ../files/${NC}"
-cp /usr/share/wallpapers.tgz ../files/
-sudo rm /usr/share/wallpapers.tgz ../files/
+echo -e "${LTGREEN}COMMAND:${GRAY}  sudo mv /opt/image_building.tgz ../files/${NC}"
+cp /opt/image_building.tgz ../files/
+sudo rm /opt/image_building.tgz ../files/
 
 echo
