@@ -485,6 +485,13 @@ install_user_environment() {
   echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/mimeapps.list /etc/skel/.config/${NC}"
   ${SUDO_CMD} cp ${FILES_SRC_DIR}/mimeapps.list /etc/skel/.config/
 
+  # Vim
+  if ! grep -q "set noautoindent" /etc/skel/.vimrc
+  then
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} sh -c 'echo \"set noautoindent\" >> /etc/skel/.vimrc'${NC}"
+    ${SUDO_CMD} sh -c 'echo "set noautoindent" >> /etc/skel/.vimrc'
+  fi
+
   echo
 
   echo -e "${LTCYAN}/root/:${NC}"
@@ -514,6 +521,13 @@ install_user_environment() {
   # mime
   echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/mimeapps.list /root/.config/${NC}"
   ${SUDO_CMD} cp ${FILES_SRC_DIR}/mimeapps.list /root/.config/
+
+  # Vim
+  if ! grep -q "set noautoindent" /root/.vimrc
+  then
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} sh -c 'echo \"set noautoindent\" >> /root/.vimrc'${NC}"
+    ${SUDO_CMD} sh -c 'echo "set noautoindent" >> /root/.vimrc'
+  fi
 
   echo
 
@@ -546,6 +560,13 @@ install_user_environment() {
     # mime
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/mimeapps.list /home/${USER}/.config/${NC}"
     ${SUDO_CMD} cp ${FILES_SRC_DIR}/mimeapps.list /home/${USER}/.config/
+
+    # Vim
+    if ! grep -q "set noautoindent" /home/${USER}/.vimrc
+    then
+      echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} sh -c 'echo \"set noautoindent\" >> /home/${USER}/.vimrc'${NC}"
+      ${SUDO_CMD} sh -c 'echo "set noautoindent" >> /home/${USER}/.vimrc'
+    fi
 
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} chown -R ${USER}.${USERS_GROUP} /home/${USER}${NC}"
     ${SUDO_CMD} chown -R ${USER}.${USERS_GROUP} /home/${USER}
@@ -592,21 +613,6 @@ configure_displaymanager() {
       pause_for_stepthrough
     ;;
   esac
-}
-
-enable_services() {
-  echo -e "${LTBLUE}Enabling/Starting Services${NC}"
-  echo -e "${LTBLUE}----------------------------------------------------${NC}"
-  for SERVICE in ${ENABLED_SERVICES_LIST}
-  do
-    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} systemctl enable ${SERVICE}${NC}"
-    ${SUDO_CMD} systemctl enable ${SERVICE}
-
-    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} systemctl restart ${SERVICE}${NC}"
-    ${SUDO_CMD} systemctl restart ${SERVICE}
-
-   echo
-  done
 }
 
 update_virtualbox_extensions() {
@@ -765,6 +771,21 @@ install_insync() {
       pause_for_stepthrough
     ;;
   esac
+}
+
+enable_services() {
+  echo -e "${LTBLUE}Enabling/Starting Services${NC}"
+  echo -e "${LTBLUE}----------------------------------------------------${NC}"
+  for SERVICE in ${ENABLED_SERVICES_LIST}
+  do
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} systemctl enable ${SERVICE}${NC}"
+    ${SUDO_CMD} systemctl enable ${SERVICE}
+
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} systemctl restart ${SERVICE}${NC}"
+    ${SUDO_CMD} systemctl restart ${SERVICE}
+
+   echo
+  done
 }
 
 #############################################################################
