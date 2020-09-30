@@ -1,5 +1,5 @@
 #!/bin/bash
-# version: 1.6.1
+# version: 1.6.2
 # date: 2020-09-30
 
 CONFIG_DIR="./config"
@@ -94,6 +94,7 @@ add_zypper_repos() {
   done
 
   echo
+  ${PAUSE_CMD}
 }
 
 refresh_zypper_repos() {
@@ -102,6 +103,7 @@ refresh_zypper_repos() {
   echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} zypper --no-gpg-checks --gpg-auto-import-keys ref${NC}"
   ${SUDO_CMD} zypper --gpg-auto-import-keys ref
   echo
+  ${PAUSE_CMD}
 }
 
 install_zypper_patterns() {
@@ -113,6 +115,7 @@ install_zypper_patterns() {
     ${SUDO_CMD} zypper -n --no-refresh install -t pattern ${PATTERN}
   done
   echo
+  ${PAUSE_CMD}
 }
 
 install_zypper_packages() {
@@ -124,6 +127,7 @@ install_zypper_packages() {
     ${SUDO_CMD} zypper -n --no-refresh install -l ${PACKAGE}
   done
   echo
+  ${PAUSE_CMD}
 }
 
 install_custom_remote_zypper_packages() {
@@ -142,6 +146,7 @@ install_custom_remote_zypper_packages() {
   else
     echo -e "${LTCYAN}(No custom zypper remote packages found)${NC}"
   fi
+  ${PAUSE_CMD}
 }
 
 install_extra_rpms() {
@@ -155,6 +160,7 @@ install_extra_rpms() {
   else
     echo -e "${LTCYAN}(No custom RPM packages found)${NC}"
   fi
+  ${PAUSE_CMD}
 }
 
 configure_sudo() {
@@ -169,7 +175,7 @@ configure_sudo() {
     echo
   fi
 
-  if ! grep -q "^%users ALL=(ALL) NOPASSWD: ALL" /etc/sudoers
+  if ! ${SUDO_CMD} sh -c 'grep -q "^%users ALL=(ALL) NOPASSWD: ALL" /etc/sudoers'
   then
     echo -e "${LTCYAN}Adding: ${GRAY}%users  ALL=(ALL) NOPASSWD: ALL${NC}"
     ${SUDO_CMD} sh -c 'echo "%users ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers'
@@ -178,7 +184,7 @@ configure_sudo() {
   if ${SUDO_CMD} sh -c 'grep -q "^Defaults targetpw .*" /etc/sudoers'
   then
     echo -e "${LTCYAN}Updating: ${GRAY}#Defaults targetpw${NC}"
-    ${SUDO_CMD} sh -c `sed  -i "s/\(^Defaults targetpw .*\)/\#\1/" /etc/sudoers`
+    ${SUDO_CMD} sh -c 'sed  -i "s/\(^Defaults targetpw .*\)/\#\1/" /etc/sudoers'
   fi
 
   if ${SUDO_CMD} sh -c 'grep -q "^ALL .*" /etc/sudoers'
@@ -187,6 +193,7 @@ configure_sudo() {
     ${SUDO_CMD} sh -c 'sed -i "s/\(^ALL .*\)/\#\1/" /etc/sudoers'
   fi
   echo
+  ${PAUSE_CMD}
 }
 
 install_modprobe_config() {
@@ -194,8 +201,6 @@ install_modprobe_config() {
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
   if ! [ -e /etc/modprobe.d/50-kvm.conf ]
   then
-    echo -e "${LTBLUE}Installing modprobe configuration${NC}"
-    echo -e "${LTBLUE}----------------------------------------------------${NC}"
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/50-kvm.conf /etc/modprobe.d${NC}"
     ${SUDO_CMD} cp ${FILES_SRC_DIR}/50-kvm.conf /etc/modprobe.d
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} chown root.root /etc/modprobe.d/*${NC}"
@@ -204,6 +209,7 @@ install_modprobe_config() {
   else
     echo -e "${LTCYAN}(No modprobe configuration found)${NC}"
   fi
+  ${PAUSE_CMD}
 }
 
 configure_libvirt() {
@@ -303,6 +309,7 @@ configure_libvirt() {
  
     echo
   fi
+  ${PAUSE_CMD}
 }
 
 install_labmachine_scripts() {
@@ -323,6 +330,7 @@ install_labmachine_scripts() {
   else
     echo -e "${LTCYAN}(No Labmachine Scripts found)${NC}"
   fi
+  ${PAUSE_CMD}
 }
 
 install_image_building_tools() {
@@ -341,6 +349,7 @@ install_image_building_tools() {
  
     echo
   fi
+  ${PAUSE_CMD}
 }
 
 
@@ -365,6 +374,7 @@ install_wallpapers() {
   else
     echo -e "${LTCYAN}(No Wallpapers found)${NC}"
   fi
+  ${PAUSE_CMD}
 }
 
 install_user_environment() {
@@ -376,8 +386,8 @@ install_user_environment() {
   echo -e "${LTCYAN}/etc/skel/:${NC}"
   echo -e "${LTCYAN}----------------------${NC}"
   # Xsession
-  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} sh -c 'sed -i /gnome-session/d >> /etc/skel/.xsession'${NC}"
-  ${SUDO_CMD} sh -c 'sed -i /gnome-session/d >> /etc/skel/.xsession'
+  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} sh -c 'sed -i /gnome-session/d /etc/skel/.xsession >> /etc/skel/.xsession'${NC}"
+  ${SUDO_CMD} sh -c 'sed -i /gnome-session/d /etc/skel/.xsession >> /etc/skel/.xsession'
   echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} sh -c \'echo \"gnome-session\" >> /etc/skel/.xsession\'${NC}"
   ${SUDO_CMD} sh -c 'echo "gnome-session" >> /etc/skel/.xsession'
 
@@ -406,8 +416,8 @@ install_user_environment() {
   echo -e "${LTCYAN}/root/:${NC}"
   echo -e "${LTCYAN}----------------------${NC}"
   # Xsession
-  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} sh -c 'sed -i /gnome-session/d >> /root/.xsession'${NC}"
-  ${SUDO_CMD} sh -c 'sed -i /gnome-session/d >> /root/.xsession'
+  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} sh -c 'sed -i /gnome-session/d /root/.xsession >> /root/.xsession'${NC}"
+  ${SUDO_CMD} sh -c 'sed -i /gnome-session/d /root/.xsession >> /root/.xsession'
   echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} sh -c \'echo \"gnome-session\" >> /root/.xsession\'${NC}"
   ${SUDO_CMD} sh -c 'echo "gnome-session" >> /root/.xsession'
 
@@ -438,8 +448,8 @@ install_user_environment() {
     echo -e "${LTCYAN}/home/${USER}/:${NC}"
     echo -e "${LTCYAN}----------------------${NC}"
     # Xsession
-    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} sed -i /gnome-session/d >> /home/${USER}/.xsession${NC}"
-    ${SUDO_CMD} sed -i /gnome-session/d >> /home/${USER}/.xsession
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} sed -i /gnome-session/d /home/${USER}/.xsession >> /home/${USER}/.xsession${NC}"
+    ${SUDO_CMD} sed -i /gnome-session/d /home/${USER}/.xsession >> /home/${USER}/.xsession
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} echo \"gnome-session\" >> /home/${USER}/.xsession${NC}"
     ${SUDO_CMD} echo "gnome-session" >> /home/${USER}/.xsession
 
@@ -472,6 +482,7 @@ install_user_environment() {
 
     echo
   done
+  ${PAUSE_CMD}
 }
 
 configure_displaymanager() {
@@ -496,6 +507,7 @@ configure_displaymanager() {
   ${SUDO_CMD} update-alternatives --set default-xsession.desktop /usr/share/xsessions/${DEFAULT_XSESSION}.desktop
  
   echo
+  ${PAUSE_CMD}
 }
 
 enable_services() {
@@ -532,6 +544,7 @@ update_virtualbox_extensions() {
   else
     echo -e "${LTCYAN}(Virtualbox not installed)${NC}"
   fi
+  ${PAUSE_CMD}
 }
 
 install_atom_editor() {
@@ -598,6 +611,7 @@ install_atom_editor() {
       done
   fi
   echo
+  ${PAUSE_CMD}
 }
 
 install_teams() {
@@ -616,6 +630,7 @@ install_teams() {
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} zypper -n --no-refresh install -l --allow-unsigned-rpm teams${NC}"
     ${SUDO_CMD} zypper -n --no-refresh install -l --allow-unsigned-rpm teams
   fi
+  ${PAUSE_CMD}
 }
 
 install_insync() {
@@ -635,6 +650,7 @@ install_insync() {
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} zypper -n --no-refresh install -l --allow-unsigned-rpm insync${NC}"
     ${SUDO_CMD} zypper -n --no-refresh install -l --allow-unsigned-rpm insync
   fi
+  ${PAUSE_CMD}
 }
 
 #############################################################################
@@ -643,6 +659,11 @@ main() {
   if ! echo ${*} | grep -q nocolor
   then
     set_colors
+  fi
+
+  if echo ${*} | grep -q stepthrough
+  then
+    PAUSE_CMD="echo -e \"${ORANGE}Press [Enter] to continue${NC}\";read;echo"
   fi
 
   if which sudo > /dev/null
