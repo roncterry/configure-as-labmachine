@@ -1,5 +1,5 @@
 #!/bin/bash
-# version: 1.6.4
+# version: 1.6.5
 # date: 2020-09-30
 
 CONFIG_DIR="./config"
@@ -564,8 +564,8 @@ install_user_environment() {
     # Vim
     if ! grep -q "set noautoindent" /home/${USER}/.vimrc
     then
-      echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} sh -c 'echo \"set noautoindent\" >> /home/${USER}/.vimrc'${NC}"
-      ${SUDO_CMD} sh -c 'echo "set noautoindent" >> /home/${USER}/.vimrc'
+      echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} sh -c \"echo set noautoindent >> /home/${USER}/.vimrc\"${NC}"
+      ${SUDO_CMD} sh -c "echo set noautoindent >> /home/${USER}/.vimrc"
     fi
 
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} chown -R ${USER}.${USERS_GROUP} /home/${USER}${NC}"
