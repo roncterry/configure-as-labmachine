@@ -1,5 +1,5 @@
 #!/bin/bash
-# version: 1.6.2
+# version: 1.6.3
 # date: 2020-09-30
 
 CONFIG_DIR="./config"
@@ -59,6 +59,12 @@ set_colors() {
   #echo -e "${LTGREEN}COMMAND:${GRAY}  ${NC}"
 }
 
+pause_for_stepthrough() {
+  echo -e "${ORANGE}Press [Enter] to continue${NC}"
+  read
+  echo
+}
+
 add_zypper_repos() {
   echo -e "${LTBLUE}Adding zypper repositories${NC}"
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
@@ -94,7 +100,12 @@ add_zypper_repos() {
   done
 
   echo
-  ${PAUSE_CMD}
+
+  case ${STEPTHROUGH} in
+    Y)
+      pause_for_stepthrough
+    ;;
+  esac
 }
 
 refresh_zypper_repos() {
@@ -103,7 +114,6 @@ refresh_zypper_repos() {
   echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} zypper --no-gpg-checks --gpg-auto-import-keys ref${NC}"
   ${SUDO_CMD} zypper --gpg-auto-import-keys ref
   echo
-  ${PAUSE_CMD}
 }
 
 install_zypper_patterns() {
@@ -115,7 +125,6 @@ install_zypper_patterns() {
     ${SUDO_CMD} zypper -n --no-refresh install -t pattern ${PATTERN}
   done
   echo
-  ${PAUSE_CMD}
 }
 
 install_zypper_packages() {
@@ -127,7 +136,12 @@ install_zypper_packages() {
     ${SUDO_CMD} zypper -n --no-refresh install -l ${PACKAGE}
   done
   echo
-  ${PAUSE_CMD}
+
+  case ${STEPTHROUGH} in
+    Y)
+      pause_for_stepthrough
+    ;;
+  esac
 }
 
 install_custom_remote_zypper_packages() {
@@ -147,7 +161,12 @@ install_custom_remote_zypper_packages() {
     echo -e "${LTCYAN}(No custom zypper remote packages found)${NC}"
     echo
   fi
-  ${PAUSE_CMD}
+
+  case ${STEPTHROUGH} in
+    Y)
+      pause_for_stepthrough
+    ;;
+  esac
 }
 
 install_extra_rpms() {
@@ -162,7 +181,12 @@ install_extra_rpms() {
     echo -e "${LTCYAN}(No custom RPM packages found)${NC}"
     echo
   fi
-  ${PAUSE_CMD}
+
+  case ${STEPTHROUGH} in
+    Y)
+      pause_for_stepthrough
+    ;;
+  esac
 }
 
 configure_sudo() {
@@ -195,7 +219,12 @@ configure_sudo() {
     ${SUDO_CMD} sh -c 'sed -i "s/\(^ALL .*\)/\#\1/" /etc/sudoers'
   fi
   echo
-  ${PAUSE_CMD}
+
+  case ${STEPTHROUGH} in
+    Y)
+      pause_for_stepthrough
+    ;;
+  esac
 }
 
 install_modprobe_config() {
@@ -212,7 +241,12 @@ install_modprobe_config() {
     echo -e "${LTCYAN}(No modprobe configuration found)${NC}"
     echo
   fi
-  ${PAUSE_CMD}
+
+  case ${STEPTHROUGH} in
+    Y)
+      pause_for_stepthrough
+    ;;
+  esac
 }
 
 configure_libvirt() {
@@ -312,7 +346,12 @@ configure_libvirt() {
  
     echo
   fi
-  ${PAUSE_CMD}
+
+  case ${STEPTHROUGH} in
+    Y)
+      pause_for_stepthrough
+    ;;
+  esac
 }
 
 install_labmachine_scripts() {
@@ -334,7 +373,18 @@ install_labmachine_scripts() {
     echo -e "${LTCYAN}(No Labmachine Scripts found)${NC}"
     echo
   fi
-  ${PAUSE_CMD}
+
+  case ${STEPTHROUGH} in
+    Y)
+      pause_for_stepthrough
+    ;;
+  esac
+
+  case ${STEPTHROUGH} in
+    Y)
+      pause_for_stepthrough
+    ;;
+  esac
 }
 
 install_image_building_tools() {
@@ -353,7 +403,12 @@ install_image_building_tools() {
  
     echo
   fi
-  ${PAUSE_CMD}
+
+  case ${STEPTHROUGH} in
+    Y)
+      pause_for_stepthrough
+    ;;
+  esac
 }
 
 
@@ -379,7 +434,12 @@ install_wallpapers() {
     echo -e "${LTCYAN}(No Wallpapers found)${NC}"
     echo
   fi
-  ${PAUSE_CMD}
+
+  case ${STEPTHROUGH} in
+    Y)
+      pause_for_stepthrough
+    ;;
+  esac
 }
 
 install_user_environment() {
@@ -487,7 +547,12 @@ install_user_environment() {
 
     echo
   done
-  ${PAUSE_CMD}
+
+  case ${STEPTHROUGH} in
+    Y)
+      pause_for_stepthrough
+    ;;
+  esac
 }
 
 configure_displaymanager() {
@@ -512,7 +577,12 @@ configure_displaymanager() {
   ${SUDO_CMD} update-alternatives --set default-xsession.desktop /usr/share/xsessions/${DEFAULT_XSESSION}.desktop
  
   echo
-  ${PAUSE_CMD}
+
+  case ${STEPTHROUGH} in
+    Y)
+      pause_for_stepthrough
+    ;;
+  esac
 }
 
 enable_services() {
@@ -550,7 +620,12 @@ update_virtualbox_extensions() {
     echo -e "${LTCYAN}(Virtualbox not installed)${NC}"
     echo
   fi
-  ${PAUSE_CMD}
+
+  case ${STEPTHROUGH} in
+    Y)
+      pause_for_stepthrough
+    ;;
+  esac
 }
 
 install_atom_editor() {
@@ -617,7 +692,12 @@ install_atom_editor() {
       done
   fi
   echo
-  ${PAUSE_CMD}
+
+  case ${STEPTHROUGH} in
+    Y)
+      pause_for_stepthrough
+    ;;
+  esac
 }
 
 install_teams() {
@@ -637,7 +717,12 @@ install_teams() {
     ${SUDO_CMD} zypper -n --no-refresh install -l --allow-unsigned-rpm teams
   fi
   echo
-  ${PAUSE_CMD}
+
+  case ${STEPTHROUGH} in
+    Y)
+      pause_for_stepthrough
+    ;;
+  esac
 }
 
 install_insync() {
@@ -658,7 +743,12 @@ install_insync() {
     ${SUDO_CMD} zypper -n --no-refresh install -l --allow-unsigned-rpm insync
   fi 
   echo
-  ${PAUSE_CMD}
+
+  case ${STEPTHROUGH} in
+    Y)
+      pause_for_stepthrough
+    ;;
+  esac
 }
 
 #############################################################################
@@ -671,7 +761,7 @@ main() {
 
   if echo ${*} | grep -q stepthrough
   then
-    PAUSE_CMD="echo -e \"${ORANGE}Press [Enter] to continue${NC}\";read;echo"
+    STEPTHROUGH="Y"
   fi
 
   if which sudo > /dev/null
