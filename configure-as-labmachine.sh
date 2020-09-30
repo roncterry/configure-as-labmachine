@@ -1,6 +1,6 @@
 #!/bin/bash
-# version: 1.4.0
-# date: 2020-07-02
+# version: 1.6.0
+# date: 2020-09-29
 
 CONFIG_DIR="./config"
 INCLUDE_DIR="./include"
@@ -109,7 +109,7 @@ install_zypper_patterns() {
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
   for PATTERN in ${ZYPPER_PATTERN_LIST}
   do
-    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} zypper -n --no-refresh install ${PATTERN}${NC}"
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} zypper -n --no-refresh install -t ${PATTERN}${NC}"
     ${SUDO_CMD} zypper -n --no-refresh install -t pattern ${PATTERN}
   done
   echo
@@ -120,7 +120,7 @@ install_zypper_packages() {
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
   for PACKAGE in ${ZYPPER_PACKAGE_LIST}
   do
-    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} zypper -n --no-refresh install ${PACKAGE}${NC}"
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} zypper -n --no-refresh install -l ${PACKAGE}${NC}"
     ${SUDO_CMD} zypper -n --no-refresh install -l ${PACKAGE}
   done
   echo
@@ -133,7 +133,7 @@ install_custom_remote_zypper_packages() {
     echo -e "${LTBLUE}----------------------------------------------------${NC}"
     for PACKAGE in ${CUSTOM_REMOTE_PACKAGE_LIST}
     do
-      echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} zypper -n --no-refresh install ${PACKAGE}${NC}"
+      echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} zypper -n --no-refresh install -l ${PACKAGE}${NC}"
       ${SUDO_CMD} zypper -n --no-refresh install -l ${PACKAGE}
     done
     echo
@@ -512,6 +512,109 @@ update_virtualbox_extensions() {
   fi
 }
 
+install_atom_editor() {
+  echo -e "${LTBLUE}Installing the Atom Editor${NC}"
+  echo -e "${LTBLUE}----------------------------------------------------${NC}"
+
+  if ! grep -q "packagecloud.io/AtomEditor" /etc/zypp/repos.d/*.repo
+  then
+    ${SUDO_CMD} sh -c 'echo -e "[Atom]\nname=Atom Editor\nbaseurl=https://packagecloud.io/AtomEditor/atom/el/7/\$basearch\nenabled=1\ntype=rpm-md\ngpgcheck=0\nrepo_gpgcheck=1\ngpgkey=https://packagecloud.io/AtomEditor/atom/gpgkey" > /etc/zypp/repos.d/atom.repo'
+    echo -e "${LTGREEN}COMMAND:${GRAY} zypper --gpg-auto-import-keys refresh${NC}"
+    ${SUDO_CMD} zypper --gpg-auto-import-keys refresh
+  fi
+
+  if zypper se atom | grep -q "A hackable text editor"
+  then
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} zypper -n --no-refresh install -l --allow-unsigned-rpm atom${NC}"
+    ${SUDO_CMD} zypper -n --no-refresh install -l --allow-unsigned-rpm atom
+  else
+    echo -e "${LTGREEN}COMMAND:${GRAY} cd ${RPM_SRC_DIR}/${NC}"
+    cd ${RPM_SRC_DIR}/
+    echo -e "${LTGREEN}COMMAND:${GRAY} wget https://atom.io/rpm${NC}"
+    wget https://atom.io/rpm
+    echo -e "${LTGREEN}COMMAND:${GRAY} mv ./rpm ./atom.rpm${NC}"
+    mv ./rpm ./atom.rpm
+    cd -
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} zypper -n --no-refresh install -l --allow-unsigned-rpm ${RPM_SRC_DIR}/atom.rpm${NC}"
+    ${SUDO_CMD} zypper -n --no-refresh install -l --allow-unsigned-rpm ${RPM_SRC_DIR}/atom.rpm
+    echo -e "${LTGREEN}COMMAND:${GRAY} ${SUDO_CMD} rm -f  ${RPM_SRC_DIR}/atom.rpm${NC}"
+    ${SUDO_CMD} rm -f  ${RPM_SRC_DIR}/atom.rpm
+  fi
+
+  echo
+
+  if [ -e ${FILES_SRC_DIR}/atom-packages.tgz ]
+  then
+    echo -e "${LTBLUE}Installing the Atom Editor add-on packages${NC}"
+    echo -e "${LTBLUE}----------------------------------------------------${NC}"
+ 
+    echo -e "${LTCYAN}/etc/skel/:${NC}"
+    echo -e "${LTCYAN}----------------------${NC}"
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} mkdir -p /etc/skel/.atom/packages/${NC}"
+    ${SUDO_CMD} mkdir -p /etc/skel/.atom/packages/ -xzf ${FILES_SRC_DIR}/atom-packages/
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /etc/skel/.atom/packages/ -xzf ${FILES_SRC_DIR}/atom-packages.tgz${NC}"
+    ${SUDO_CMD} tar -C /etc/skel/.atom/packages/ -xzf ${FILES_SRC_DIR}/atom-packages.tgz
+ 
+    echo -e "${LTCYAN}/root/:${NC}"
+    echo -e "${LTCYAN}----------------------${NC}"
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} mkdir -p /root/.atom/packages/${NC}"
+    ${SUDO_CMD} mkdir -p /root/.atom/packages/ -xzf ${FILES_SRC_DIR}/atom-packages/
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /root/.atom/packages/ -xzf ${FILES_SRC_DIR}/atom-packages.tgz${NC}"
+    ${SUDO_CMD} tar -C /root/.atom/packages/ -xzf ${FILES_SRC_DIR}/atom-packages.tgz
+ 
+    for USER in ${USER_LIST}
+    do
+      echo -e "${LTCYAN}/home/${USER}/:${NC}"
+      echo -e "${LTCYAN}----------------------${NC}"
+      echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} mkdir -p /home/${USER}/.atom/packages/${NC}"
+      ${SUDO_CMD} mkdir -p /home/${USER}/.atom/packages/ -xzf ${FILES_SRC_DIR}/atom-packages/
+      echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /home/${USER}/.atom/packages/ -xzf ${FILES_SRC_DIR}/atom-packages.tgz${NC}"
+      ${SUDO_CMD} tar -C /home/${USER}/.atom/packages/ -xzf ${FILES_SRC_DIR}/atom-packages.tgz
+
+      echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} chown -R ${USER}.${USERS_GROUP} /home/${USER}${NC}"
+      ${SUDO_CMD} chown -R ${USER}.${USERS_GROUP} /home/${USER}
+      done
+  fi
+  echo
+}
+
+install_teams() {
+  echo -e "${LTBLUE}Installing Microsoft Teams${NC}"
+  echo -e "${LTBLUE}----------------------------------------------------${NC}"
+
+  if ! grep -q "packages.microsoft.com/yumrepos/ms-teams" /etc/zypp/repos.d/*.repo
+  then
+    ${SUDO_CMD} sh -c 'echo -e "[teams]\nname=teams\nenabled=1\nautorefresh=0\nbaseurl=https://packages.microsoft.com/yumrepos/ms-teams\ntype=rpm-md\ngpgkey=https://packages.microsoft.com/keys/microsoft.asc\nkeeppackages=0" > /etc/zypp/repos.d/teams.repo'
+    echo -e "${LTGREEN}COMMAND:${GRAY} zypper --gpg-auto-import-keys refresh${NC}"
+    ${SUDO_CMD} zypper --gpg-auto-import-keys refresh
+  fi
+
+  if zypper se teams | grep -q "Microsoft Teams for Linux is your chat-centered workspace in Office 365"
+  then
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} zypper -n --no-refresh install -l --allow-unsigned-rpm teams${NC}"
+    ${SUDO_CMD} zypper -n --no-refresh install -l --allow-unsigned-rpm teams
+  fi
+}
+
+install_insync() {
+  echo -e "${LTBLUE}Installing Insync${NC}"
+  echo -e "${LTBLUE}----------------------------------------------------${NC}"
+
+  if ! grep -q "yum.insync.io/fedora/27" /etc/zypp/repos.d/*.repo
+  then
+    echo -e "${LTGREEN}COMMAND:${GRAY} zypper ar http://yum.insync.io/fedora/27/ insync${NC}"
+    ${SUDO_CMD} zypper ar http://yum.insync.io/fedora/27/ insync
+    echo -e "${LTGREEN}COMMAND:${GRAY} zypper --gpg-auto-import-keys refresh${NC}"
+    ${SUDO_CMD} zypper --gpg-auto-import-keys refresh
+  fi
+
+  if zypper se insync | grep -q "| insync "
+  then
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} zypper -n --no-refresh install -l --allow-unsigned-rpm insync${NC}"
+    ${SUDO_CMD} zypper -n --no-refresh install -l --allow-unsigned-rpm insync
+  fi
+}
+
 #############################################################################
 
 main() {
@@ -559,6 +662,9 @@ main() {
   install_labmachine_scripts
   install_image_building_tools
   update_virtualbox_extensions
+  install_atom_editor
+  #install_teams
+  #install_insync
   install_wallpapers
   install_user_environment
   configure_displaymanager
