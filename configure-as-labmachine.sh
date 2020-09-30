@@ -1,6 +1,6 @@
 #!/bin/bash
-# version: 1.6.0
-# date: 2020-09-29
+# version: 1.6.1
+# date: 2020-09-30
 
 CONFIG_DIR="./config"
 INCLUDE_DIR="./include"
@@ -127,6 +127,8 @@ install_zypper_packages() {
 }
 
 install_custom_remote_zypper_packages() {
+  echo -e "${LTBLUE}Installing custom remote zypper packages${NC}"
+  echo -e "${LTBLUE}----------------------------------------------------${NC}"
   if ! [ -z ${CUSTOM_REMOTE_ZYPPER_PACKAGES} ]
   then
     echo -e "${LTBLUE}Installing custom remote zypper packages${NC}"
@@ -137,17 +139,21 @@ install_custom_remote_zypper_packages() {
       ${SUDO_CMD} zypper -n --no-refresh install -l ${PACKAGE}
     done
     echo
+  else
+    echo -e "${LTCYAN}(No custom zypper remote packages found)${NC}"
   fi
 }
 
 install_extra_rpms() {
+  echo -e "${LTBLUE}Installing custom RPM packages${NC}"
+  echo -e "${LTBLUE}----------------------------------------------------${NC}"
   if ls ${RPM_SRC_DIR} | grep -q ".rpm"
   then
-    echo -e "${LTBLUE}Installing custom RPM packages${NC}"
-    echo -e "${LTBLUE}----------------------------------------------------${NC}"
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} rpm -U ${RPM_SRC_DIR}/*.rpm${NC}"
     ${SUDO_CMD} rpm -U ${RPM_SRC_DIR}/*.rpm
     echo
+  else
+    echo -e "${LTCYAN}(No custom RPM packages found)${NC}"
   fi
 }
 
@@ -163,27 +169,29 @@ configure_sudo() {
     echo
   fi
 
-  if grep -q "^Defaults targetpw .*" /etc/sudoers
-  then
-    echo -e "${LTCYAN}#Defaults targetpw${NC}"
-    ${SUDO_CMD} sed  -i 's/\(^Defaults targetpw .*\)/\#\1/' /etc/sudoers
-  fi
-
-  if grep -q "^ALL .*" /etc/sudoers
-  then
-    echo -e "${LTCYAN}#ALL  ALL=(ALL) ALL${NC}"
-    ${SUDO_CMD} sed -i 's/\(^ALL .*\)/\#\1/' /etc/sudoers
-  fi
-
   if ! grep -q "^%users ALL=(ALL) NOPASSWD: ALL" /etc/sudoers
   then
-    echo -e "${LTCYAN}%users  ALL=(ALL) NOPASSWD: ALL${NC}"
-    ${SUDO_CMD} echo "%users ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+    echo -e "${LTCYAN}Adding: ${GRAY}%users  ALL=(ALL) NOPASSWD: ALL${NC}"
+    ${SUDO_CMD} sh -c 'echo "%users ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers'
+  fi
+
+  if ${SUDO_CMD} sh -c 'grep -q "^Defaults targetpw .*" /etc/sudoers'
+  then
+    echo -e "${LTCYAN}Updating: ${GRAY}#Defaults targetpw${NC}"
+    ${SUDO_CMD} sh -c `sed  -i "s/\(^Defaults targetpw .*\)/\#\1/" /etc/sudoers`
+  fi
+
+  if ${SUDO_CMD} sh -c 'grep -q "^ALL .*" /etc/sudoers'
+  then
+    echo -e "${LTCYAN}Updating: ${GRAY}#ALL  ALL=(ALL) ALL${NC}"
+    ${SUDO_CMD} sh -c 'sed -i "s/\(^ALL .*\)/\#\1/" /etc/sudoers'
   fi
   echo
 }
 
 install_modprobe_config() {
+  echo -e "${LTBLUE}Installing modprobe configuration${NC}"
+  echo -e "${LTBLUE}----------------------------------------------------${NC}"
   if ! [ -e /etc/modprobe.d/50-kvm.conf ]
   then
     echo -e "${LTBLUE}Installing modprobe configuration${NC}"
@@ -193,6 +201,8 @@ install_modprobe_config() {
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} chown root.root /etc/modprobe.d/*${NC}"
     ${SUDO_CMD} chown root.root /etc/modprobe.d/*
     echo
+  else
+    echo -e "${LTCYAN}(No modprobe configuration found)${NC}"
   fi
 }
 
@@ -253,33 +263,33 @@ configure_libvirt() {
   # Enable VM susepend on shutdown and resume on power on
   echo -e "${LTCYAN}/etc/sysconfig/libvirt-guests:${NC}"
   echo -e "${LTCYAN}ON_BOOT=start${NC}"
-  ${SUDO_CMD} sed -i 's/^#ON_BOOT.*/ON_BOOT=start' /etc/sysconfig/libvirt-guests
-  ${SUDO_CMD} sed -i 's/^ON_BOOT.*/ON_BOOT=start' /etc/sysconfig/libvirt-guests
+  ${SUDO_CMD} sed -i 's/^#ON_BOOT.*/ON_BOOT=start/' /etc/sysconfig/libvirt-guests
+  ${SUDO_CMD} sed -i 's/^ON_BOOT.*/ON_BOOT=start/' /etc/sysconfig/libvirt-guests
 
   echo -e "${LTCYAN}/etc/sysconfig/libvirt-guests:${NC}"
   echo -e "${LTCYAN}START_DELAY=0${NC}"
-  ${SUDO_CMD} sed -i 's/^#START_DELAY.*/START_DELAY=0' /etc/sysconfig/libvirt-guests
-  ${SUDO_CMD} sed -i 's/^START_DELAY.*/START_DELAY=0' /etc/sysconfig/libvirt-guests
+  ${SUDO_CMD} sed -i 's/^#START_DELAY.*/START_DELAY=0/' /etc/sysconfig/libvirt-guests
+  ${SUDO_CMD} sed -i 's/^START_DELAY.*/START_DELAY=0/' /etc/sysconfig/libvirt-guests
 
   echo -e "${LTCYAN}/etc/sysconfig/libvirt-guests:${NC}"
   echo -e "${LTCYAN}ON_SHUTDOWN=suspend${NC}"
-  ${SUDO_CMD} sed -i 's/^#ON_SHUTDOWN.*/ON_SHUTDOWN=suspend' /etc/sysconfig/libvirt-guests
-  ${SUDO_CMD} sed -i 's/^ON_SHUTDOWN.*/ON_SHUTDOWN=suspend' /etc/sysconfig/libvirt-guests
+  ${SUDO_CMD} sed -i 's/^#ON_SHUTDOWN.*/ON_SHUTDOWN=suspend/' /etc/sysconfig/libvirt-guests
+  ${SUDO_CMD} sed -i 's/^ON_SHUTDOWN.*/ON_SHUTDOWN=suspend/' /etc/sysconfig/libvirt-guests
 
   echo -e "${LTCYAN}/etc/sysconfig/libvirt-guests:${NC}"
   echo -e "${LTCYAN}PARALLEL_SHUTDOWN=20${NC}"
-  ${SUDO_CMD} sed -i 's/^#PARALLEL_SHUTDOWN.*/PARALLEL_SHUTDOWN=20' /etc/sysconfig/libvirt-guests
-  ${SUDO_CMD} sed -i 's/^PARALLEL_SHUTDOWN.*/PARALLEL_SHUTDOWN=20' /etc/sysconfig/libvirt-guests
+  ${SUDO_CMD} sed -i 's/^#PARALLEL_SHUTDOWN.*/PARALLEL_SHUTDOWN=20/' /etc/sysconfig/libvirt-guests
+  ${SUDO_CMD} sed -i 's/^PARALLEL_SHUTDOWN.*/PARALLEL_SHUTDOWN=20/' /etc/sysconfig/libvirt-guests
 
   echo -e "${LTCYAN}/etc/sysconfig/libvirt-guests:${NC}"
   echo -e "${LTCYAN}BYPASS_CACHE=0${NC}"
-  ${SUDO_CMD} sed -i 's/^#BYPASS_CACHE.*/BYPASS_CACHE=0' /etc/sysconfig/libvirt-guests
-  ${SUDO_CMD} sed -i 's/^BYPASS_CACHE.*/BYPASS_CACHE=0' /etc/sysconfig/libvirt-guests
+  ${SUDO_CMD} sed -i 's/^#BYPASS_CACHE.*/BYPASS_CACHE=0/' /etc/sysconfig/libvirt-guests
+  ${SUDO_CMD} sed -i 's/^BYPASS_CACHE.*/BYPASS_CACHE=0/' /etc/sysconfig/libvirt-guests
 
   echo -e "${LTCYAN}/etc/sysconfig/libvirt-guests:${NC}"
   echo -e "${LTCYAN}SYNC_TIME=1${NC}"
-  ${SUDO_CMD} sed -i 's/^#SYNC_TIME.*/SYNC_TIME=1' /etc/sysconfig/libvirt-guests
-  ${SUDO_CMD} sed -i 's/^SYNC_TIME.*/SYNC_TIME=1' /etc/sysconfig/libvirt-guests
+  ${SUDO_CMD} sed -i 's/^#SYNC_TIME.*/SYNC_TIME=1/' /etc/sysconfig/libvirt-guests
+  ${SUDO_CMD} sed -i 's/^SYNC_TIME.*/SYNC_TIME=1/' /etc/sysconfig/libvirt-guests
 
   echo
 
@@ -296,10 +306,10 @@ configure_libvirt() {
 }
 
 install_labmachine_scripts() {
+  echo -e "${LTBLUE}Installing Labmachine Scripts${NC}"
+  echo -e "${LTBLUE}----------------------------------------------------${NC}"
   if [ -e ${FILES_SRC_DIR}/labmachine_scripts.tgz ]
   then
-    echo -e "${LTBLUE}Installing Labmachine Scripts${NC}"
-    echo -e "${LTBLUE}----------------------------------------------------${NC}"
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C / -xzf ${FILES_SRC_DIR}/labmachine_scripts.tgz ${NC}"
     ${SUDO_CMD} tar -C / -xzf ${FILES_SRC_DIR}/labmachine_scripts.tgz 
  
@@ -310,6 +320,8 @@ install_labmachine_scripts() {
     ${SUDO_CMD} chmod +x /usr/local/bin/*.sh
  
     echo
+  else
+    echo -e "${LTCYAN}(No Labmachine Scripts found)${NC}"
   fi
 }
 
@@ -333,10 +345,10 @@ install_image_building_tools() {
 
 
 install_wallpapers() {
+  echo -e "${LTBLUE}Installing Wallpapers${NC}"
+  echo -e "${LTBLUE}----------------------------------------------------${NC}"
   if [ -e ${FILES_SRC_DIR}/wallpapers.tgz ]
   then
-    echo -e "${LTBLUE}Installing Wallpapers${NC}"
-    echo -e "${LTBLUE}----------------------------------------------------${NC}"
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /usr/share -xzf ${FILES_SRC_DIR}/wallpapers.tgz ${NC}"
     ${SUDO_CMD} tar -C /usr/share -xzf ${FILES_SRC_DIR}/wallpapers.tgz 
  
@@ -350,6 +362,8 @@ install_wallpapers() {
     ${SUDO_CMD} chown root.root /usr/share/gnome-background-properties/*.xml
  
     echo
+  else
+    echo -e "${LTCYAN}(No Wallpapers found)${NC}"
   fi
 }
 
@@ -362,16 +376,18 @@ install_user_environment() {
   echo -e "${LTCYAN}/etc/skel/:${NC}"
   echo -e "${LTCYAN}----------------------${NC}"
   # Xsession
-  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} echo \"gnome-session\" >> /etc/skel/.xsession${NC}"
-  echo "gnome-session" >> /etc/skel/.xsession
+  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} sh -c 'sed -i /gnome-session/d >> /etc/skel/.xsession'${NC}"
+  ${SUDO_CMD} sh -c 'sed -i /gnome-session/d >> /etc/skel/.xsession'
+  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} sh -c \'echo \"gnome-session\" >> /etc/skel/.xsession\'${NC}"
+  ${SUDO_CMD} sh -c 'echo "gnome-session" >> /etc/skel/.xsession'
 
   # GNOME
   echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} mkdir -p /etc/skel/.local/share/gnome-shell/extensions${NC}"
-  mkdir -p /etc/skel/.local/share/gnome-shell/extensions
+  ${SUDO_CMD} mkdir -p /etc/skel/.local/share/gnome-shell/extensions
   echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /etc/skel/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}/gnome-shell-extensions.${DISTRO_NAME}.tgz${NC}"
   ${SUDO_CMD} tar -C /etc/skel/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}/gnome-shell-extensions.${DISTRO_NAME}.tgz
   echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} mkdir -p /etc/skel/.config/dconf${NC}"
-  mkdir -p /etc/skel/.config/dconf
+  ${SUDO_CMD} mkdir -p /etc/skel/.config/dconf
   echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/user.${DISTRO_NAME} /etc/skel/.config/dconf/user${NC}"
   ${SUDO_CMD} cp ${FILES_SRC_DIR}/user.${DISTRO_NAME} /etc/skel/.config/dconf/user
 
@@ -390,16 +406,18 @@ install_user_environment() {
   echo -e "${LTCYAN}/root/:${NC}"
   echo -e "${LTCYAN}----------------------${NC}"
   # Xsession
-  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} echo \"gnome-session\" >> /root/.xsession${NC}"
-  echo "gnome-session" >> /root/.xsession
+  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} sh -c 'sed -i /gnome-session/d >> /root/.xsession'${NC}"
+  ${SUDO_CMD} sh -c 'sed -i /gnome-session/d >> /root/.xsession'
+  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} sh -c \'echo \"gnome-session\" >> /root/.xsession\'${NC}"
+  ${SUDO_CMD} sh -c 'echo "gnome-session" >> /root/.xsession'
 
   # GNOME
   echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} mkdir -p /root/.local/share/gnome-shell/extensions${NC}"
-  mkdir -p /root/.local/share/gnome-shell/extensions
+  ${SUDO_CMD} mkdir -p /root/.local/share/gnome-shell/extensions
   echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /root/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}/gnome-shell-extensions.${DISTRO_NAME}.tgz${NC}"
   ${SUDO_CMD} tar -C /root/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}/gnome-shell-extensions.${DISTRO_NAME}.tgz
   echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} mkdir -p /root/.config/dconf${NC}"
-  mkdir -p /root/.config/dconf
+  ${SUDO_CMD} mkdir -p /root/.config/dconf
   echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/user.${DISTRO_NAME} /root/.config/dconf/user${NC}"
   ${SUDO_CMD} cp ${FILES_SRC_DIR}/user.${DISTRO_NAME} /root/.config/dconf/user
 
@@ -420,16 +438,18 @@ install_user_environment() {
     echo -e "${LTCYAN}/home/${USER}/:${NC}"
     echo -e "${LTCYAN}----------------------${NC}"
     # Xsession
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} sed -i /gnome-session/d >> /home/${USER}/.xsession${NC}"
+    ${SUDO_CMD} sed -i /gnome-session/d >> /home/${USER}/.xsession
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} echo \"gnome-session\" >> /home/${USER}/.xsession${NC}"
-    echo "gnome-session" >> /home/${USER}/.xsession
+    ${SUDO_CMD} echo "gnome-session" >> /home/${USER}/.xsession
 
     # GNOME
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} mkdir -p /home/${USER}/.local/share/gnome-shell/extensions${NC}"
-    mkdir -p /home/${USER}/.local/share/gnome-shell/extensions
+    ${SUDO_CMD} mkdir -p /home/${USER}/.local/share/gnome-shell/extensions
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /home/${USER}/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}/gnome-shell-extensions.${DISTRO_NAME}.tgz${NC}"
     ${SUDO_CMD} tar -C /home/${USER}/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}/gnome-shell-extensions.${DISTRO_NAME}.tgz
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} mkdir -p /home/${USER}/.config/dconf${NC}"
-    mkdir -p /home/${USER}/.config/dconf
+    ${SUDO_CMD} mkdir -p /home/${USER}/.config/dconf
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/user.${DISTRO_NAME} /home/${USER}/.config/dconf/user${NC}"
     ${SUDO_CMD} cp ${FILES_SRC_DIR}/user.${DISTRO_NAME} /home/${USER}/.config/dconf/user
 
@@ -470,10 +490,10 @@ configure_displaymanager() {
   echo -e "${LTCYAN}DEFAULT_WM="${DEFAULT_XSESSION}"${NC}"
   ${SUDO_CMD} sed -i "s/^DEFAULT_WM=.*/DEFAULT_WM=\"${DEFAULT_XSESSION}\"/" /etc/sysconfig/displaymanager
 
-  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDU_CMD} update-alternatives --set default-displaymanager /usr/lib/X11/displaymanagers/${DEFAULT_DISPLAYMANAGER} ${NC}"
-  ${SUDU_CMD} update-alternatives --set default-displaymanager /usr/lib/X11/displaymanagers/${DEFAULT_DISPLAYMANAGER} 
-  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDU_CMD} update-alternatives --set default-xsession.desktop /usr/share/xsessions/${DEFAULT_XSESSION}.desktop${NC}"
-  ${SUDU_CMD} update-alternatives --set default-xsession.desktop /usr/share/xsessions/${DEFAULT_XSESSION}.desktop
+  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} update-alternatives --set default-displaymanager /usr/lib/X11/displaymanagers/${DEFAULT_DISPLAYMANAGER} ${NC}"
+  ${SUDO_CMD} update-alternatives --set default-displaymanager /usr/lib/X11/displaymanagers/${DEFAULT_DISPLAYMANAGER} 
+  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} update-alternatives --set default-xsession.desktop /usr/share/xsessions/${DEFAULT_XSESSION}.desktop${NC}"
+  ${SUDO_CMD} update-alternatives --set default-xsession.desktop /usr/share/xsessions/${DEFAULT_XSESSION}.desktop
  
   echo
 }
@@ -494,10 +514,10 @@ enable_services() {
 }
 
 update_virtualbox_extensions() {
+  echo -e "${LTBLUE}Installing Virtualbox Extension Pack${NC}"
+  echo -e "${LTBLUE}----------------------------------------------------${NC}"
   if rpm -qa | grep -q virtualbox
   then
-    echo -e "${LTBLUE}Installing Virtualbox Extension Pack${NC}"
-    echo -e "${LTBLUE}----------------------------------------------------${NC}"
     VBOX_VER="$(rpm -q virtualbox | cut -d \- -f 2)"
  
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} cd ${FILES_SRC_DIR}${NC}"
@@ -509,6 +529,8 @@ update_virtualbox_extensions() {
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} cd -${NC}"
     ${SUDO_CMD} cd - > /dev/null
     echo
+  else
+    echo -e "${LTCYAN}(Virtualbox not installed)${NC}"
   fi
 }
 
@@ -572,7 +594,7 @@ install_atom_editor() {
       ${SUDO_CMD} tar -C /home/${USER}/.atom/packages/ -xzf ${FILES_SRC_DIR}/atom-packages.tgz
 
       echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} chown -R ${USER}.${USERS_GROUP} /home/${USER}${NC}"
-      ${SUDO_CMD} chown -R ${USER}.${USERS_GROUP} /home/${USER}
+      ${SUDO_CMD} chown -R ${USER}.${USERS_GROUP} /home/${USER}thoughs
       done
   fi
   echo
