@@ -145,6 +145,7 @@ install_custom_remote_zypper_packages() {
     echo
   else
     echo -e "${LTCYAN}(No custom zypper remote packages found)${NC}"
+    echo
   fi
   ${PAUSE_CMD}
 }
@@ -159,6 +160,7 @@ install_extra_rpms() {
     echo
   else
     echo -e "${LTCYAN}(No custom RPM packages found)${NC}"
+    echo
   fi
   ${PAUSE_CMD}
 }
@@ -208,6 +210,7 @@ install_modprobe_config() {
     echo
   else
     echo -e "${LTCYAN}(No modprobe configuration found)${NC}"
+    echo
   fi
   ${PAUSE_CMD}
 }
@@ -329,6 +332,7 @@ install_labmachine_scripts() {
     echo
   else
     echo -e "${LTCYAN}(No Labmachine Scripts found)${NC}"
+    echo
   fi
   ${PAUSE_CMD}
 }
@@ -373,6 +377,7 @@ install_wallpapers() {
     echo
   else
     echo -e "${LTCYAN}(No Wallpapers found)${NC}"
+    echo
   fi
   ${PAUSE_CMD}
 }
@@ -543,6 +548,7 @@ update_virtualbox_extensions() {
     echo
   else
     echo -e "${LTCYAN}(Virtualbox not installed)${NC}"
+    echo
   fi
   ${PAUSE_CMD}
 }
@@ -630,6 +636,7 @@ install_teams() {
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} zypper -n --no-refresh install -l --allow-unsigned-rpm teams${NC}"
     ${SUDO_CMD} zypper -n --no-refresh install -l --allow-unsigned-rpm teams
   fi
+  echo
   ${PAUSE_CMD}
 }
 
@@ -649,7 +656,8 @@ install_insync() {
   then
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} zypper -n --no-refresh install -l --allow-unsigned-rpm insync${NC}"
     ${SUDO_CMD} zypper -n --no-refresh install -l --allow-unsigned-rpm insync
-  fi
+  fi 
+  echo
   ${PAUSE_CMD}
 }
 
