@@ -1,5 +1,5 @@
 #!/bin/bash
-# version: 1.6.3
+# version: 1.6.4
 # date: 2020-09-30
 
 CONFIG_DIR="./config"
@@ -114,6 +114,12 @@ refresh_zypper_repos() {
   echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} zypper --no-gpg-checks --gpg-auto-import-keys ref${NC}"
   ${SUDO_CMD} zypper --gpg-auto-import-keys ref
   echo
+
+  case ${STEPTHROUGH} in
+    Y)
+      pause_for_stepthrough
+    ;;
+  esac
 }
 
 install_zypper_patterns() {
@@ -125,6 +131,12 @@ install_zypper_patterns() {
     ${SUDO_CMD} zypper -n --no-refresh install -t pattern ${PATTERN}
   done
   echo
+
+  case ${STEPTHROUGH} in
+    Y)
+      pause_for_stepthrough
+    ;;
+  esac
 }
 
 install_zypper_packages() {
@@ -379,19 +391,13 @@ install_labmachine_scripts() {
       pause_for_stepthrough
     ;;
   esac
-
-  case ${STEPTHROUGH} in
-    Y)
-      pause_for_stepthrough
-    ;;
-  esac
 }
 
 install_image_building_tools() {
+  echo -e "${LTBLUE}Installing Image Building Tools${NC}"
+  echo -e "${LTBLUE}----------------------------------------------------${NC}"
   if [ -e ${FILES_SRC_DIR}/image_building.tgz ]
   then
-    echo -e "${LTBLUE}Installing Image Building Tools${NC}"
-    echo -e "${LTBLUE}----------------------------------------------------${NC}"
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /opt -xzf ${FILES_SRC_DIR}/image_building.tgz ${NC}"
     ${SUDO_CMD} tar -C /opt -xzf ${FILES_SRC_DIR}/image_building.tgz 
  
@@ -401,6 +407,9 @@ install_image_building_tools() {
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} chmod +x /opt/image_building/*.sh${NC}"
     ${SUDO_CMD} chmod +x /opt/image_building/*.sh
  
+    echo
+  else
+    echo -e "${LTCYAN}(No Image Building Tools found)${NC}"
     echo
   fi
 
@@ -603,18 +612,25 @@ enable_services() {
 update_virtualbox_extensions() {
   echo -e "${LTBLUE}Installing Virtualbox Extension Pack${NC}"
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
+
+  if ! rpm -qa | grep -q virtualbox
+  then
+    if echo ${*} | grep -q install-vbox
+    then
+      echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} zypper -n --no-refresh install -l --allow-unsigned-rpm virtualbox-qt${NC}"
+      ${SUDO_CMD} zypper -n --no-refresh install -l --allow-unsigned-rpm virtualbox-qt
+      echo
+    fi
+  fi
+
   if rpm -qa | grep -q virtualbox
   then
     VBOX_VER="$(rpm -q virtualbox | cut -d \- -f 2)"
  
-    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} cd ${FILES_SRC_DIR}${NC}"
-    ${SUDO_CMD} cd ${FILES_SRC_DIR}
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} wget https://download.virtualbox.org/virtualbox/${VBOX_VER}/Oracle_VM_VirtualBox_Extension_Pack-${VBOX_VER}.vbox-extpack${NC}"
     ${SUDO_CMD} wget https://download.virtualbox.org/virtualbox/${VBOX_VER}/Oracle_VM_VirtualBox_Extension_Pack-${VBOX_VER}.vbox-extpack
-    echo -e "${LTGREEN}COMMAND:${GRAY}  echo y | ${SUDO_CMD} /usr/bin/VBoxManage extpack install --replace ${FILES_SRC_DIR}/*.vbox-extpack${NC}"
-    echo y | ${SUDO_CMD} /usr/bin/VBoxManage extpack install --replace ${FILES_SRC_DIR}/*.vbox-extpack
-    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} cd -${NC}"
-    ${SUDO_CMD} cd - > /dev/null
+    echo -e "${LTGREEN}COMMAND:${GRAY}  echo y | ${SUDO_CMD} /usr/bin/VBoxManage extpack install --replace *.vbox-extpack${NC}"
+    echo y | ${SUDO_CMD} /usr/bin/VBoxManage extpack install --replace *.vbox-extpack
     echo
   else
     echo -e "${LTCYAN}(Virtualbox not installed)${NC}"
@@ -713,8 +729,8 @@ install_teams() {
 
   if zypper se teams | grep -q "Microsoft Teams for Linux is your chat-centered workspace in Office 365"
   then
-    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} zypper -n --no-refresh install -l --allow-unsigned-rpm teams${NC}"
-    ${SUDO_CMD} zypper -n --no-refresh install -l --allow-unsigned-rpm teams
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} zypper --no-refresh install -l --allow-unsigned-rpm teams${NC}"
+    ${SUDO_CMD} zypper --no-refresh install -l --allow-unsigned-rpm teams
   fi
   echo
 
@@ -739,8 +755,8 @@ install_insync() {
 
   if zypper se insync | grep -q "| insync "
   then
-    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} zypper -n --no-refresh install -l --allow-unsigned-rpm insync${NC}"
-    ${SUDO_CMD} zypper -n --no-refresh install -l --allow-unsigned-rpm insync
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} zypper --no-refresh install -l --allow-unsigned-rpm insync${NC}"
+    ${SUDO_CMD} zypper --no-refresh install -l --allow-unsigned-rpm insync
   fi 
   echo
 
@@ -802,10 +818,16 @@ main() {
   configure_libvirt
   install_labmachine_scripts
   install_image_building_tools
-  update_virtualbox_extensions
+  update_virtualbox_extensions ${*}
   install_atom_editor
-  #install_teams
-  #install_insync
+  if echo ${*} | grep -q install-teams
+  then
+    install_teams
+  fi
+  if echo ${*} | grep -q install-insync
+  then
+    install_insync
+  fi
   install_wallpapers
   install_user_environment
   configure_displaymanager
