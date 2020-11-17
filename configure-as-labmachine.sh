@@ -28,7 +28,7 @@ source /etc/os-release
 normalize_distro_names
 
 source ${CONFIG_DIR}/configure-as-labmachine.cfg
-source ${INCLUDE_DIR}/*.sh
+[ -f ${INCLUDE_DIR}/*.sh ] && source ${INCLUDE_DIR}/*.sh
 
 #############################################################################
 
