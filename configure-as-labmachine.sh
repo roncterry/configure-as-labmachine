@@ -1,6 +1,6 @@
 #!/bin/bash
-# version: 1.6.5
-# date: 2020-09-30
+# version: 1.7.0
+# date: 2021-07-20
 
 CONFIG_DIR="./config"
 INCLUDE_DIR="./include"
@@ -470,10 +470,22 @@ install_user_environment() {
   ${SUDO_CMD} mkdir -p /etc/skel/.local/share/gnome-shell/extensions
   echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /etc/skel/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}/gnome-shell-extensions.${DISTRO_NAME}.tgz${NC}"
   ${SUDO_CMD} tar -C /etc/skel/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}/gnome-shell-extensions.${DISTRO_NAME}.tgz
-  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} mkdir -p /etc/skel/.config/dconf${NC}"
-  ${SUDO_CMD} mkdir -p /etc/skel/.config/dconf
-  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/user.${DISTRO_NAME} /etc/skel/.config/dconf/user${NC}"
-  ${SUDO_CMD} cp ${FILES_SRC_DIR}/user.${DISTRO_NAME} /etc/skel/.config/dconf/user
+  if [ -e ${FILES_SRC_DIR}/user.${DISTRO_NAME} ]
+  then
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} mkdir -p /etc/skel/.config/dconf${NC}"
+    ${SUDO_CMD} mkdir -p /etc/skel/.config/dconf
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/user.${DISTRO_NAME} /etc/skel/.config/dconf/user${NC}"
+    ${SUDO_CMD} cp ${FILES_SRC_DIR}/user.${DISTRO_NAME} /etc/skel/.config/dconf/user
+  fi
+  if [ -e ${FILES_SRC_DIR}/dconf_defaults.${DISTRO_NAME}.tgz ]
+  then
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /etc/dconf/ -zvf ${FILES_SRC_DIR}/dconf_defaults.${DISTRO_NAME}.tgz${NC}"
+    ${SUDO_CMD} tar -C /etc/dconf/ -zvf ${FILES_SRC_DIR}/dconf_defaults.${DISTRO_NAME}.tgz
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} dconf update${NC}"
+    ${SUDO_CMD} dconf update
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} rm -f /etc/skel/.config/dconf/user${NC}"
+    ${SUDO_CMD} rm -f /etc/skel/.config/dconf/user
+  fi
 
   # XFCE4
   echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /etc/skel/.config/ -xzf ${FILES_SRC_DIR}/xfce4.tgz${NC}"
@@ -507,10 +519,18 @@ install_user_environment() {
   ${SUDO_CMD} mkdir -p /root/.local/share/gnome-shell/extensions
   echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /root/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}/gnome-shell-extensions.${DISTRO_NAME}.tgz${NC}"
   ${SUDO_CMD} tar -C /root/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}/gnome-shell-extensions.${DISTRO_NAME}.tgz
-  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} mkdir -p /root/.config/dconf${NC}"
-  ${SUDO_CMD} mkdir -p /root/.config/dconf
-  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/user.${DISTRO_NAME} /root/.config/dconf/user${NC}"
-  ${SUDO_CMD} cp ${FILES_SRC_DIR}/user.${DISTRO_NAME} /root/.config/dconf/user
+  if [ -e ${FILES_SRC_DIR}/user.${DISTRO_NAME} ]
+  then
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} mkdir -p /root/.config/dconf${NC}"
+    ${SUDO_CMD} mkdir -p /root/.config/dconf
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/user.${DISTRO_NAME} /root/.config/dconf/user${NC}"
+    ${SUDO_CMD} cp ${FILES_SRC_DIR}/user.${DISTRO_NAME} /root/.config/dconf/user
+  fi
+  if [ -e ${FILES_SRC_DIR}/dconf_defaults.${DISTRO_NAME}.tgz ]
+  then
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} rm -f /root/.config/dconf/user${NC}"
+    ${SUDO_CMD} rm -f /root/.config/dconf/user
+  fi
 
   # XFCE4
   echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /root/.config/ -xzf ${FILES_SRC_DIR}/xfce4.tgz${NC}"
@@ -546,10 +566,18 @@ install_user_environment() {
     ${SUDO_CMD} mkdir -p /home/${USER}/.local/share/gnome-shell/extensions
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /home/${USER}/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}/gnome-shell-extensions.${DISTRO_NAME}.tgz${NC}"
     ${SUDO_CMD} tar -C /home/${USER}/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}/gnome-shell-extensions.${DISTRO_NAME}.tgz
-    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} mkdir -p /home/${USER}/.config/dconf${NC}"
-    ${SUDO_CMD} mkdir -p /home/${USER}/.config/dconf
-    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/user.${DISTRO_NAME} /home/${USER}/.config/dconf/user${NC}"
-    ${SUDO_CMD} cp ${FILES_SRC_DIR}/user.${DISTRO_NAME} /home/${USER}/.config/dconf/user
+    if [ -e ${FILES_SRC_DIR}/user.${DISTRO_NAME} ]
+    then
+      echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} mkdir -p /home/${USER}/.config/dconf${NC}"
+      ${SUDO_CMD} mkdir -p /home/${USER}/.config/dconf
+      echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/user.${DISTRO_NAME} /home/${USER}/.config/dconf/user${NC}"
+      ${SUDO_CMD} cp ${FILES_SRC_DIR}/user.${DISTRO_NAME} /home/${USER}/.config/dconf/user
+    fi
+    if [ -e ${FILES_SRC_DIR}/dconf_defaults.${DISTRO_NAME}.tgz ]
+    then
+      echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} rm -f /home/${USER}/.config/dconf/user${NC}"
+      ${SUDO_CMD} rm -f /home/${USER}/.config/dconf/user
+    fi
 
     # XFCE4
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /home/${USER}/.config/ -xzf ${FILES_SRC_DIR}/xfce4.tgz${NC}"
