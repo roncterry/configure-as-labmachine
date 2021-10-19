@@ -1,12 +1,9 @@
 #!/bin/bash
-# version: 1.7.0
-# date: 2021-07-20
+# version: 1.7.1
+# date: 2021-10-19
 
 CONFIG_DIR="./config"
 INCLUDE_DIR="./include"
-
-FILES_SRC_DIR="files"
-RPM_SRC_DIR="rpm"
 
 normalize_distro_names() {
   case ${ID} in
@@ -250,7 +247,7 @@ install_modprobe_config() {
     ${SUDO_CMD} chown root.root /etc/modprobe.d/*
     echo
   else
-    echo -e "${LTCYAN}(No modprobe configuration found)${NC}"
+    echo -e "${LTCYAN}(Modprobe configuration found)${NC}"
     echo
   fi
 
@@ -454,8 +451,18 @@ install_wallpapers() {
 install_user_environment() {
   echo -e "${LTBLUE}Installing User Environments${NC}"
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
-  USER_LIST=tux
-  USERS_GROUP=users
+
+  echo -e "${LTCYAN}/etc/dconf/:${NC}"
+  echo -e "${LTCYAN}----------------------${NC}"
+  if [ -e ${FILES_SRC_DIR}/dconf_defaults.${DISTRO_NAME}.tgz ]
+  then
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /etc/ -xzf ${FILES_SRC_DIR}/dconf_defaults.${DISTRO_NAME}.tgz${NC}"
+    ${SUDO_CMD} tar -C /etc/ -xzf ${FILES_SRC_DIR}/dconf_defaults.${DISTRO_NAME}.tgz
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} dconf update${NC}"
+    ${SUDO_CMD} dconf update
+  fi
+
+  echo
 
   echo -e "${LTCYAN}/etc/skel/:${NC}"
   echo -e "${LTCYAN}----------------------${NC}"
@@ -470,6 +477,11 @@ install_user_environment() {
   ${SUDO_CMD} mkdir -p /etc/skel/.local/share/gnome-shell/extensions
   echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /etc/skel/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}/gnome-shell-extensions.${DISTRO_NAME}.tgz${NC}"
   ${SUDO_CMD} tar -C /etc/skel/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}/gnome-shell-extensions.${DISTRO_NAME}.tgz
+  if ! [ -e /etc/skel/.config ]
+  then
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} mkdir -p /etc/skel/.config${NC}"
+    ${SUDO_CMD} mkdir -p /etc/skel/.config
+  fi
   if [ -e ${FILES_SRC_DIR}/user.${DISTRO_NAME} ]
   then
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} mkdir -p /etc/skel/.config/dconf${NC}"
@@ -479,10 +491,6 @@ install_user_environment() {
   fi
   if [ -e ${FILES_SRC_DIR}/dconf_defaults.${DISTRO_NAME}.tgz ]
   then
-    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /etc/dconf/ -zvf ${FILES_SRC_DIR}/dconf_defaults.${DISTRO_NAME}.tgz${NC}"
-    ${SUDO_CMD} tar -C /etc/dconf/ -zvf ${FILES_SRC_DIR}/dconf_defaults.${DISTRO_NAME}.tgz
-    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} dconf update${NC}"
-    ${SUDO_CMD} dconf update
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} rm -f /etc/skel/.config/dconf/user${NC}"
     ${SUDO_CMD} rm -f /etc/skel/.config/dconf/user
   fi
@@ -519,6 +527,11 @@ install_user_environment() {
   ${SUDO_CMD} mkdir -p /root/.local/share/gnome-shell/extensions
   echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /root/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}/gnome-shell-extensions.${DISTRO_NAME}.tgz${NC}"
   ${SUDO_CMD} tar -C /root/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}/gnome-shell-extensions.${DISTRO_NAME}.tgz
+  if ! [ -e /root/.config ]
+  then
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} mkdir -p /root/.config${NC}"
+    ${SUDO_CMD} mkdir -p /root/.config
+  fi
   if [ -e ${FILES_SRC_DIR}/user.${DISTRO_NAME} ]
   then
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} mkdir -p /root/.config/dconf${NC}"
@@ -566,6 +579,11 @@ install_user_environment() {
     ${SUDO_CMD} mkdir -p /home/${USER}/.local/share/gnome-shell/extensions
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} tar -C /home/${USER}/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}/gnome-shell-extensions.${DISTRO_NAME}.tgz${NC}"
     ${SUDO_CMD} tar -C /home/${USER}/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}/gnome-shell-extensions.${DISTRO_NAME}.tgz
+    if ! [ -e /home/${USER}/.config ]
+    then
+      echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} mkdir -p /home/${USER}/.config${NC}"
+      ${SUDO_CMD} mkdir -p /home/${USER}/.config
+    fi
     if [ -e ${FILES_SRC_DIR}/user.${DISTRO_NAME} ]
     then
       echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} mkdir -p /home/${USER}/.config/dconf${NC}"
@@ -853,8 +871,15 @@ main() {
 
   echo -e "${LTBLUE}########################################################################${NC}"
   echo -e "${LTBLUE}                Configuring Machine As a Lab Machine${NC}"
+  echo -e "${LTBLUE}                ${NC}"
+  echo -e "${LTBLUE}                Distribution: ${DISTRO_NAME}${NC}"
   echo -e "${LTBLUE}########################################################################${NC}"
   echo
+  case ${STEPTHROUGH} in
+    Y)
+      pause_for_stepthrough
+    ;;
+  esac
 
   configure_sudo
   add_zypper_repos
