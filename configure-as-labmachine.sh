@@ -1,6 +1,6 @@
 #!/bin/bash
-# version: 1.7.1
-# date: 2021-10-19
+# version: 1.9.0
+# date: 2022-01-05
 
 CONFIG_DIR="./config"
 INCLUDE_DIR="./include"
@@ -8,14 +8,18 @@ INCLUDE_DIR="./include"
 normalize_distro_names() {
   case ${ID} in
     sles)
+      DISTRO_TYPE=SLE_
       DISTRO_NAME=SLE_$(echo ${VERSION} | sed 's/-/_/g')
+      DISTRO_VERSION=$(echo ${VERSION} | sed 's/-/_/g')
     ;;
     *)
       if echo ${PRETTY_NAME} | grep -iq beta
       then
         DISTRO_NAME=$(echo ${PRETTY_NAME} | sed 's/ /_/g' | sed 's/_Beta//g' | sed 's/_beta//g')
+        DISTRO_VERSION=${VERSION}
       else
         DISTRO_NAME=$(echo ${PRETTY_NAME} | sed 's/ /_/g')
+        DISTRO_VERSION=${VERSION}
       fi
     ;;
   esac
@@ -417,7 +421,6 @@ install_image_building_tools() {
   esac
 }
 
-
 install_wallpapers() {
   echo -e "${LTBLUE}Installing Wallpapers${NC}"
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
@@ -438,6 +441,30 @@ install_wallpapers() {
     echo
   else
     echo -e "${LTCYAN}(No Wallpapers found)${NC}"
+    echo
+  fi
+
+  case ${STEPTHROUGH} in
+    Y)
+      pause_for_stepthrough
+    ;;
+  esac
+}
+
+install_libreoffice_color_palettes() {
+  echo -e "${LTBLUE}Installing LibreOffice Color palettes${NC}"
+  echo -e "${LTBLUE}----------------------------------------------------${NC}"
+  if ls ${FILES_SRC_DIR}/ | grep -q ".soc"
+  then
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/*.soc /usr/lib64/libreoffice/share/palette/ ${NC}"
+    ${SUDO_CMD} cp ${FILES_SRC_DIR}/*.soc /usr/lib64/libreoffice/share/palette/
+ 
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} chown root.root /usr/lib64/libreoffice/share/palette/*${NC}"
+    ${SUDO_CMD} chown root.root /usr/lib64/libreoffice/share/palette/*
+ 
+    echo
+  else
+    echo -e "${LTCYAN}(No LibreOffice color palettes found)${NC}"
     echo
   fi
 
@@ -903,6 +930,7 @@ main() {
     install_insync
   fi
   install_wallpapers
+  install_libreoffice_color_palettes
   install_user_environment
   configure_displaymanager
   enable_services
