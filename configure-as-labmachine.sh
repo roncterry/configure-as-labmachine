@@ -1,6 +1,6 @@
 #!/bin/bash
-# version: 1.9.0
-# date: 2022-01-05
+# version: 2.1.0
+# date: 2022-01-11
 
 CONFIG_DIR="./config"
 INCLUDE_DIR="./include"
@@ -58,6 +58,13 @@ set_colors() {
   #echo -e "${LTRED}${NC}"
   #echo -e "${ORANGE}${NC}"
   #echo -e "${LTGREEN}COMMAND:${GRAY}  ${NC}"
+}
+
+usage() {
+  echo
+  echo "USAGE: ${1} [no_restart_gui] [install-insync] [install-teams] [packages-only] [libvirt-only] [user_env-only] [nocolor] [stepthrough]"
+  echo
+  exit
 }
 
 pause_for_stepthrough() {
@@ -413,6 +420,45 @@ install_image_building_tools() {
     echo -e "${LTCYAN}(No Image Building Tools found)${NC}"
     echo
   fi
+
+  case ${STEPTHROUGH} in
+    Y)
+      pause_for_stepthrough
+    ;;
+  esac
+}
+
+create_default_dirs() {
+  echo -e "${LTBLUE}Creating Default Directories${NC}"
+  echo -e "${LTBLUE}----------------------------------------------------${NC}"
+  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} mkdir -p /install/courses${NC}"
+  ${SUDO_CMD} mkdir -p /install/courses
+  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} chown -R .users /install/courses${NC}"
+  ${SUDO_CMD} chown -R .users /install/courses
+  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} chmod -R 2777 /install/courses${NC}"
+  ${SUDO_CMD} chmod -R 2777 /install/courses
+
+  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} mkdir -p /install/courses_shared${NC}"
+  ${SUDO_CMD} mkdir -p /install/courses_shared
+  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} chown -R .users /install/courses_shared${NC}"
+  ${SUDO_CMD} chown -R .users /install/courses_shared
+  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} chmod -R 2777 /install/courses_shared${NC}"
+  ${SUDO_CMD} chmod -R 2777 /install/courses_shared
+
+  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} mkdir -p /home/VMs${NC}"
+  ${SUDO_CMD} mkdir -p /home/VMs
+  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} chown -R .users /home/VMs${NC}"
+  ${SUDO_CMD} chown -R .users /home/VMs
+  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} chmod -R 2777 /home/VMs${NC}"
+  ${SUDO_CMD} chmod -R 2777 /home/VMs
+
+  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} mkdir -p /home/iso${NC}"
+  ${SUDO_CMD} mkdir -p /home/iso
+  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} chown -R .users /home/iso${NC}"
+  ${SUDO_CMD} chown -R .users /home/iso
+  echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} chmod -R 2777 /home/iso${NC}"
+  ${SUDO_CMD} chmod -R 2777 /home/iso
+  echo
 
   case ${STEPTHROUGH} in
     Y)
@@ -851,12 +897,23 @@ enable_services() {
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
   for SERVICE in ${ENABLED_SERVICES_LIST}
   do
-    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} systemctl enable ${SERVICE}${NC}"
-    ${SUDO_CMD} systemctl enable ${SERVICE}
+    if echo ${*} | grep -q no_restart_gui
+    then
+      if ! echo ${SERVICE} | grep -q display-manager
+      then
+        echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} systemctl enable ${SERVICE}${NC}"
+        ${SUDO_CMD} systemctl enable ${SERVICE}
+  
+        echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} systemctl restart ${SERVICE}${NC}"
+        ${SUDO_CMD} systemctl restart ${SERVICE}
+      fi
+    else
+      echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} systemctl enable ${SERVICE}${NC}"
+      ${SUDO_CMD} systemctl enable ${SERVICE}
 
-    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} systemctl restart ${SERVICE}${NC}"
-    ${SUDO_CMD} systemctl restart ${SERVICE}
-
+      echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} systemctl restart ${SERVICE}${NC}"
+      ${SUDO_CMD} systemctl restart ${SERVICE}
+    fi
    echo
   done
 }
@@ -867,6 +924,11 @@ main() {
   if ! echo ${*} | grep -q nocolor
   then
     set_colors
+  fi
+
+  if echo ${*} | grep -q "help"
+  then
+    usage
   fi
 
   if echo ${*} | grep -q stepthrough
@@ -908,32 +970,55 @@ main() {
     ;;
   esac
 
-  configure_sudo
-  add_zypper_repos
-  refresh_zypper_repos
-  install_zypper_patterns
-  install_zypper_packages
-  install_custom_remote_zypper_packages
-  install_extra_rpms
-  install_modprobe_config
-  configure_libvirt
-  install_labmachine_scripts
-  install_image_building_tools
-  update_virtualbox_extensions ${*}
-  install_atom_editor
-  if echo ${*} | grep -q install-teams
+  if echo ${*} | grep -q packages-only
   then
-    install_teams
-  fi
-  if echo ${*} | grep -q install-insync
+    add_zypper_repos
+    refresh_zypper_repos
+    install_zypper_patterns
+    install_zypper_packages
+    install_custom_remote_zypper_packages
+    install_extra_rpms
+  elif echo ${*} | grep -q tools-only
   then
-    install_insync
+    install_labmachine_scripts
+    install_image_building_tools
+  elif echo ${*} | grep -q libvirt-only
+  then
+    install_modprobe_config
+    configure_libvirt
+  elif echo ${*} | grep -q user_env-only
+  then
+    install_user_environment
+    configure_displaymanager
+  else
+    configure_sudo
+    add_zypper_repos
+    refresh_zypper_repos
+    install_zypper_patterns
+    install_zypper_packages
+    install_custom_remote_zypper_packages
+    install_extra_rpms
+    install_modprobe_config
+    configure_libvirt
+    install_labmachine_scripts
+    install_image_building_tools
+    update_virtualbox_extensions ${*}
+    install_atom_editor
+    if echo ${*} | grep -q install-teams
+    then
+      install_teams
+    fi
+    if echo ${*} | grep -q install-insync
+    then
+      install_insync
+    fi
+    create_default_dirs
+    install_wallpapers
+    install_libreoffice_color_palettes
+    install_user_environment
+    configure_displaymanager
+    enable_services
   fi
-  install_wallpapers
-  install_libreoffice_color_palettes
-  install_user_environment
-  configure_displaymanager
-  enable_services
 }
 
 #############################################################################
