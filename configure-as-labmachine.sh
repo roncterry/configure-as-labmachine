@@ -1,6 +1,6 @@
 #!/bin/bash
-# version: 2.1.0
-# date: 2022-01-11
+# version: 2.1.1
+# date: 2022-01-13
 
 CONFIG_DIR="./config"
 INCLUDE_DIR="./include"
@@ -101,6 +101,8 @@ add_zypper_repos() {
     REPO_NAME="$(echo ${REPO} | cut -d , -f 2)"
 
     echo -e "${LTCYAN}${REPO_NAME}${NC}"
+    echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} zypper removerepo ${REPO_URL} ${REPO_NAME}${NC}"
+    ${SUDO_CMD} zypper removerepo ${REPO_URL} ${REPO_NAME}
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} zypper addrepo ${REPO_URL} ${REPO_NAME}${NC}"
     ${SUDO_CMD} zypper addrepo ${REPO_URL} ${REPO_NAME}
     echo -e "${LTGREEN}COMMAND:${GRAY}  ${SUDO_CMD} zypper modifyrepo -e -F ${REPO_NAME}${NC}"
