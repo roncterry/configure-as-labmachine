@@ -1,6 +1,6 @@
 #!/bin/bash
-# version: 2.1.2
-# date: 2022-04-14
+# version: 2.1.4
+# date: 2022-04-27
 
 CONFIG_DIR="./config"
 INCLUDE_DIR="./include"
@@ -276,9 +276,9 @@ configure_libvirt() {
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
   # Change to UNIX socket based access and authorization
   echo -e "${LTCYAN}/etc/libvirt/libvirtd.conf:${NC}"
-  echo -e "${LTCYAN}unix_socket_group = \"libvirt\"${NC}"
-  ${SUDO_CMD} sed -i 's/^#unix_socket_group.*/unix_socket_group = "libvirt"/' /etc/libvirt/libvirtd.conf
-  ${SUDO_CMD} sed -i 's/^unix_socket_group.*/unix_socket_group = "libvirt"/' /etc/libvirt/libvirtd.conf
+  echo -e "${LTCYAN}unix_sock_group = \"libvirt\"${NC}"
+  ${SUDO_CMD} sed -i 's/^#unix_sock_group.*/unix_sock_group = "libvirt"/' /etc/libvirt/libvirtd.conf
+  ${SUDO_CMD} sed -i 's/^unix_sock_group.*/unix_sock_group = "libvirt"/' /etc/libvirt/libvirtd.conf
 
   echo -e "${LTCYAN}unix_sock_ro_perms = \"0777\"${NC}"
   ${SUDO_CMD} sed -i 's/^#unix_sock_ro_perms.*/unix_sock_ro_perms = "0777"/' /etc/libvirt/libvirtd.conf
@@ -856,10 +856,26 @@ install_teams() {
 
   if zypper se teams | grep -q "Microsoft Teams for Linux is your chat-centered workspace in Office 365"
   then
-    echo -e "${LTGREEN}COMMAND:${LTGRAY}  ${SUDO_CMD} zypper --no-refresh install -l --allow-unsigned-rpm teams${NC}"
-    ${SUDO_CMD} zypper --no-refresh install -l --allow-unsigned-rpm teams
+    echo -e "${LTGREEN}COMMAND:${LTGRAY}  ${SUDO_CMD} zypper --non-interactive --no-refresh install -l --allow-unsigned-rpm teams${NC}"
+    ${SUDO_CMD} zypper --non-interactive --no-refresh install -l --allow-unsigned-rpm teams
   fi
   echo
+
+  case ${STEPTHROUGH} in
+    Y)
+      pause_for_stepthrough
+    ;;
+  esac
+}
+
+install_zoom() {
+  echo -e "${LTBLUE}Installing Zoom${NC}"
+  echo -e "${LTBLUE}----------------------------------------------------${NC}"
+
+  echo -e "${LTGREEN}COMMAND:${LTGRAY} ${SUDO_CMD} rpm --import https://zoom.us/linux/download/pubkey${NC}"
+  ${SUDO_CMD} rpm --import https://zoom.us/linux/download/pubkey
+  echo -e "${LTGREEN}COMMAND:${LTGRAY} ${SUDO_CMD} zypper --non-interactive --no-refresh install -l --allow-unsigned-rpm https://zoom.us/client/latest/zoom_openSUSE_x86_64.rpm ${NC}"
+  ${SUDO_CMD} zypper --non-interactive --no-refresh install -l --allow-unsigned-rpm https://zoom.us/client/latest/zoom_openSUSE_x86_64.rpm 
 
   case ${STEPTHROUGH} in
     Y)
@@ -882,8 +898,8 @@ install_insync() {
 
   if zypper se insync | grep -q "| insync "
   then
-    echo -e "${LTGREEN}COMMAND:${LTGRAY}  ${SUDO_CMD} zypper --no-refresh install -l --allow-unsigned-rpm insync${NC}"
-    ${SUDO_CMD} zypper --no-refresh install -l --allow-unsigned-rpm insync
+    echo -e "${LTGREEN}COMMAND:${LTGRAY}  ${SUDO_CMD} zypper --non-interactive --no-refresh install -l --allow-unsigned-rpm insync${NC}"
+    ${SUDO_CMD} zypper --non-interactive --no-refresh install -l --allow-unsigned-rpm insync
   fi 
   echo
 
