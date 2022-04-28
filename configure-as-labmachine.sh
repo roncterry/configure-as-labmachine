@@ -1,6 +1,6 @@
 #!/bin/bash
-# version: 2.1.4
-# date: 2022-04-27
+# version: 2.2.0
+# date: 2022-04-28
 
 CONFIG_DIR="./config"
 INCLUDE_DIR="./include"
@@ -387,8 +387,8 @@ install_labmachine_scripts() {
     echo -e "${LTGREEN}COMMAND:${LTGRAY}  ${SUDO_CMD} chown root.root /usr/local/bin/*.sh${NC}"
     ${SUDO_CMD} chown root.root /usr/local/bin/*.sh
  
-    echo -e "${LTGREEN}COMMAND:${LTGRAY}  ${SUDO_CMD} chmod +x /usr/local/bin/*.sh${NC}"
-    ${SUDO_CMD} chmod +x /usr/local/bin/*.sh
+    echo -e "${LTGREEN}COMMAND:${LTGRAY}  ${SUDO_CMD} chmod +rx /usr/local/bin/*.sh${NC}"
+    ${SUDO_CMD} chmod +rx /usr/local/bin/*.sh
  
     echo
   else
@@ -414,8 +414,8 @@ install_image_building_tools() {
     echo -e "${LTGREEN}COMMAND:${LTGRAY}  ${SUDO_CMD} chown root.root /opt/image_building${NC}"
     ${SUDO_CMD} chown root.root /opt/image_building
  
-    echo -e "${LTGREEN}COMMAND:${LTGRAY}  ${SUDO_CMD} chmod +x /opt/image_building/*.sh${NC}"
-    ${SUDO_CMD} chmod +x /opt/image_building/*.sh
+    echo -e "${LTGREEN}COMMAND:${LTGRAY}  ${SUDO_CMD} chmod +rx /opt/image_building/*.sh${NC}"
+    ${SUDO_CMD} chmod +rx /opt/image_building/*.sh
  
     echo
   else
@@ -696,6 +696,13 @@ install_user_environment() {
     #echo -e "${LTGREEN}COMMAND:${LTGRAY}  ${SUDO_CMD} chown -R ${USER}.${USERS_GROUP} /home/${USER}/.config${NC}"
     #${SUDO_CMD} chown -R ${USER}.${USERS_GROUP} /home/${USER}/.config
 
+    echo
+
+    for SECONDARY_GROUP in ${USERS_SECONDARY_GROUPS}
+    do
+      echo -e "${LTGREEN}COMMAND:${LTGRAY}  ${SUDO_CMD} usermod -aG ${SECONDARY_GROUP} ${USER}${NC}"
+      ${SUDO_CMD} usermod -aG ${SECONDARY_GROUP} ${USER}
+    done
     echo
   done
 
