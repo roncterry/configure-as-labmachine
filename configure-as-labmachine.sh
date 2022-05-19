@@ -1,6 +1,6 @@
 #!/bin/bash
-# version: 2.2.0
-# date: 2022-04-28
+# version: 2.3.0
+# date: 2022-05-19
 
 CONFIG_DIR="./config"
 INCLUDE_DIR="./include"
@@ -203,6 +203,23 @@ install_extra_rpms() {
     echo -e "${LTCYAN}(No custom RPM packages found)${NC}"
     echo
   fi
+
+  case ${STEPTHROUGH} in
+    Y)
+      pause_for_stepthrough
+    ;;
+  esac
+}
+
+remove_zypper_packages() {
+  echo -e "${LTBLUE}Removing zypper packages${NC}"
+  echo -e "${LTBLUE}----------------------------------------------------${NC}"
+  for PACKAGE in ${ZYPPER_REMOVE_PACKAGE_LIST}
+  do
+    echo -e "${LTGREEN}COMMAND:${LTGRAY}  ${SUDO_CMD} zypper -n --no-refresh remove -l ${PACKAGE}${NC}"
+    ${SUDO_CMD} zypper -n --no-refresh remove -l ${PACKAGE}
+  done
+  echo
 
   case ${STEPTHROUGH} in
     Y)
@@ -536,6 +553,17 @@ install_user_environment() {
     echo -e "${LTGREEN}COMMAND:${LTGRAY}  ${SUDO_CMD} dconf update${NC}"
     ${SUDO_CMD} dconf update
   fi
+
+  echo
+
+  echo -e "${LTCYAN}/etc/polkit-default-privs.local${NC}"
+  echo -e "${LTCYAN}----------------------${NC}"
+  #echo -e "${LTGREEN}COMMAND:${LTGRAY}  ${SUDO_CMD} sed -i 's/org.freedesktop.packagekit.system-sources-refresh.*/org.freedesktop.packagekit.system-sources-refresh               yes:yes:yes/' /etc/polkit-default-privs.standard${NC}"
+  #${SUDO_CMD} sed -i 's/org.freedesktop.packagekit.system-sources-refresh.*/org.freedesktop.packagekit.system-sources-refresh               yes:yes:yes/' /etc/polkit-default-privs.standard
+  echo -e "${LTGREEN}COMMAND:${LTGRAY}  ${SUDO_CMD} echo org.freedesktop.packagekit.system-sources-refresh               yes:yes:yes >> /etc/polkit-default-privs.local${NC}"
+  ${SUDO_CMD} echo org.freedesktop.packagekit.system-sources-refresh               yes:yes:yes >> /etc/polkit-default-privs.local
+  echo -e "${LTGREEN}COMMAND:${LTGRAY}  ${SUDO_CMD} set_polkit_default_privs${NC}"
+  ${SUDO_CMD} set_polkit_default_privs
 
   echo
 
@@ -1008,6 +1036,7 @@ main() {
     install_zypper_patterns
     install_zypper_packages
     install_custom_remote_zypper_packages
+    remove_zypper_packages
     install_extra_rpms
     install_atom_editor
   elif echo ${*} | grep -q tools-only
@@ -1033,6 +1062,7 @@ main() {
     install_zypper_patterns
     install_zypper_packages
     install_custom_remote_zypper_packages
+    remove_zypper_packages
     install_extra_rpms
     install_atom_editor
     # libvirt
