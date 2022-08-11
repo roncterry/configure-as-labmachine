@@ -1,6 +1,6 @@
 #!/bin/bash
-# version: 2.3.0
-# date: 2022-05-19
+# version: 2.3.1
+# date: 2022-08-11
 
 CONFIG_DIR="./config"
 INCLUDE_DIR="./include"
@@ -1027,8 +1027,6 @@ main() {
   then
     configure_sudo
     create_default_dirs
-    install_wallpapers
-    install_libreoffice_color_palettes
   elif echo ${*} | grep -q packages-only
   then
     add_zypper_repos
@@ -1052,10 +1050,14 @@ main() {
     update_virtualbox_extensions ${*}
   elif echo ${*} | grep -q user_env-only
   then
+    install_wallpapers
+    install_libreoffice_color_palettes
     install_user_environment
     configure_displaymanager
   else
+    # base env
     configure_sudo
+    create_default_dirs
     # zypper
     add_zypper_repos
     refresh_zypper_repos
@@ -1081,11 +1083,13 @@ main() {
     then
       install_insync
     fi
-    # base env
-    create_default_dirs
+    if echo ${*} | grep -q install-zoom
+    then
+      install_zoom
+    fi
+    # user env
     install_wallpapers
     install_libreoffice_color_palettes
-    # user env
     install_user_environment
     configure_displaymanager
     # services
