@@ -14,13 +14,13 @@
 
 
 
-# Modifying the Script's behaviour and Output:
+# Modifying the Script's behavior and Output:
 
 **Config File:**
 
-The behaviours of the script can be modified by editing the `config/configure-as-labmachine.cfg` file. 
+The behaviors of the script can be modified by editing the `config/configure-as-labmachine.cfg` file. 
 
-One important modifcation that will probaly need to be done is to edit the `USER_LIST` variable to change the name of the default user that will be used or even add additional users to be configured in the same manner. (This is a space delimited list).
+One important modification that will probably need to be done is to edit the `USER_LIST` variable to change the name of the default user that will be used or even add additional users to be configured in the same manner. (This is a space delimited list).
 
 **CLI Arguments:**
 
@@ -29,7 +29,7 @@ The script can perform many different operations to configure the machine to be 
 When running the script you can control what operations are performed by using different arguments. If no arguments are supplied to the command then all <u>standard</u> operations will be performed. Optional operations will <u>only</u> be performed if the argument is supplied.
 
 **Example:**
-    configure-as-labmachine.sh [arg] [arg] ...
+    `configure-as-labmachine.sh [arg] [arg] ...`
 
 <u>**Standard Operations:**</u>
 
@@ -58,8 +58,8 @@ When running the script you can control what operations are performed by using d
   * Cloud:Tools
   * X11:RemoteDesktop:x2go
 
-If you would like to add the **packman** repo, edit the `config/configure-as-labmachine.cfg` file and uncomment and move the packman repo into the `ZYPPER_REPOS_LIST` variable. There are other optional and potentially diesirable repos commented out as well. These can be uncommented and moved into the `ZYPPER_REPOS_LIST` variable in the same manner. You may add any additioinal repos to that variable as well (ensuring that the URL is correct for the distro).
+If you would like to add the **packman** repo, edit the `config/configure-as-labmachine.cfg` file and uncomment and move the packman repo into the `ZYPPER_REPOS_LIST` variable. There are other optional and potentially desirable repos commented out as well. These can be uncommented and moved into the `ZYPPER_REPOS_LIST` variable in the same manner. You may add any additional repos to that variable as well (ensuring that the URL is correct for the distro).
 
-# Additional optional tools:
+# Additional Optional Tools:
 
 Once the machine has been configured as a lab machine, if there are additional disks attached, the `create-and-mount-courses-disk.sh` and `create-and-mount-home-disk.sh` scripts can be used to automatically partition/format and then mount the additional disks on `/install/courses` and `/home` in the case that the additional disk space is needed for the lab environments to be installed and run (i.e. as in when using a standard OS image Azure where you need to add an additional disk to provide more disk space).
