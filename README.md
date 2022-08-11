@@ -6,7 +6,7 @@
 
   * Download this project into the installed openSUSE Leap or SLE 15 image.
 
-  * Run the `configure-as-labmachine.sh` script (as root or via sudo) to configure that image to be basically the standard SUSE Training lab machine image.
+  * Run the `configure-as-labmachine.sh` script (as root or via sudo) to configure that image to be basically the standard SUSE Training lab machine image. (It can be run from a terminal in a GUI however it might be best to switch to a virtual terminal and run the command.)
 
 **openSUSE Leap versions supported:** Leap 15.1/15.2/15.3
 
@@ -33,13 +33,14 @@ When running the script you can control what operations are performed by using d
 
 <u>**Standard Operations:**</u>
 
-|<u>Argument</u>   |<u>Description</u>                                                                                  |
-|------------------|----------------------------------------------------------------------------------------------------|
-| **base_env-only**| Configure the base environment (sudo, default directories, wallpapers, LibreOffice color palettes) |
-| **packages-only**| Configure standard software repositories and install packages                                      |
-| **libvirt-only** | Configure KVM and Libvirt                                                                          |
-| **tools-only**   | Install the labmachine tools into /usr/local/bin/                                                  |
-| **vbox-only**    | Install VirtualBox extensions                                                                      |
+|<u>Argument</u>    |<u>Description</u>                                                                                                                                 |
+|-------------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
+| **base_env-only** | Configure the base environment (sudo, default directories, wallpapers, LibreOffice color palettes)                                                |
+| **packages-only** | Configure standard software repositories and install packages                                                                                     |
+| **libvirt-only**  | Configure KVM and Libvirt                                                                                                                         |
+| **tools-only**    | Install the labmachine tools into /usr/local/bin/                                                                                                 |
+| **vbox-only**     | Install VirtualBox extensions                                                                                                                     |
+| **user_env-only** | Configure the user(s') shell and GNOME environment and install user local copies of the standard GNOME Shell extensions (including into /etc/skel)|
 
 <u>**Optional Operations:**</u>
 
@@ -59,6 +60,14 @@ When running the script you can control what operations are performed by using d
   * X11:RemoteDesktop:x2go
 
 If you would like to add the **packman** repo, edit the `config/configure-as-labmachine.cfg` file and uncomment and move the packman repo into the `ZYPPER_REPOS_LIST` variable. There are other optional and potentially desirable repos commented out as well. These can be uncommented and moved into the `ZYPPER_REPOS_LIST` variable in the same manner. You may add any additional repos to that variable as well (ensuring that the URL is correct for the distro).
+
+**Custom RPM Packages to install:**
+
+If you have additional custom RPM packages you would like installed you can place them in the `rpms` directory. They will be installed with zypper when after the standard repos and packages have been added and installed. (I.e. this is the way you would install the virtualbmc command - for Leap 15.3 and later the package must be downloaded form the Leap 15.1 repo.)
+
+**Hook Directory for Custom Commands:**
+
+If you have any custom scripts you would like to be run you can put them in the `include` directory and if they have the `.sh` filename extension they will be run at the end of the scripts operations.
 
 # Additional Optional Tools:
 
