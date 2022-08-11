@@ -26,7 +26,7 @@ One important modification that will probably need to be done is to edit the `US
 
 The script can perform many different operations to configure the machine to be a "lab machine" some of which are standard some of which are optional.
 
-When running the script you can control what operations are performed by using different arguments. If no arguments are supplied to the command then all <u>standard</u> operations will be performed. Optional operations will <u>only</u> be performed if the argument is supplied.
+When running the script you can control what operations are performed by using different arguments. If no arguments are supplied to the command then all standard operations will be performed. If any one of the standard operation is supplied as an argument only that operation will be performed. Optional operations will only be performed if the argument is supplied. Multiple optional operations can be supplied as a space delimited list and each will be performed.
 
 **Example:**
     `configure-as-labmachine.sh [arg] [arg] ...`
