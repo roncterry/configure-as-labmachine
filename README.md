@@ -8,7 +8,7 @@
 
   * Run the `configure-as-labmachine.sh` script (as root or via sudo) to configure that image to be basically the standard SUSE Training lab machine image. (It can be run from a terminal in a GUI however it might be best to switch to a virtual terminal and run the command.)
 
-**openSUSE Leap versions supported:** Leap 15.1/15.2/15.3
+**openSUSE Leap versions supported:** Leap 15.1/15.2/15.3/15.4
 
 **SLES/SLED versions supported:** SLE15 SP1/SP2/SP3
 
