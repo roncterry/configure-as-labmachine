@@ -1,0 +1,6 @@
+Custom RPMs you want to install go in this directory.
+
+Some useful packages to retireve and place here could be:
+
+AppImageLauncher: https://github.com/TheAssassin/AppImageLauncher/releases
+VirtualBMC: https://software.opensuse.org/package/python3-virtualbmc
