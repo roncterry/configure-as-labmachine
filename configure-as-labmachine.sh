@@ -216,8 +216,8 @@ remove_zypper_packages() {
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
   for PACKAGE in ${ZYPPER_REMOVE_PACKAGE_LIST}
   do
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper -n --no-refresh remove -l ${PACKAGE}${NC}"
-    ${SUDO_CMD} zypper -n --no-refresh remove -l ${PACKAGE}
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper -n --no-refresh remove -u ${PACKAGE}${NC}"
+    ${SUDO_CMD} zypper -n --no-refresh remove -u ${PACKAGE}
   done
   echo
 
