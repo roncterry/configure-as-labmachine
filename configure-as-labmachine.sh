@@ -1,6 +1,6 @@
 #!/bin/bash
-# version: 2.3.2
-# date: 2023-02-03
+# version: 2.4.0
+# date: 2023-02-07
 
 CONFIG_DIR="./config"
 INCLUDE_DIR="./include"
@@ -62,7 +62,7 @@ set_colors() {
 
 usage() {
   echo
-  echo "USAGE: ${1} [base_env-only] [user_env-only] [packages-only] [tools-only] [libvirt-only] [vbox-only] [install-insync] [install-teams] [no_restart_gui] [nocolor] [stepthrough]"
+  echo "USAGE: ${1} [base_env-only] [user_env-only] [packages-only] [tools-only] [libvirt-only] [install-virtualbox] [install-atom_editor] [install-insync] [install-teams] [install-zoom] [no_restart_gui] [nocolor] [stepthrough]"
   echo
   exit
 }
@@ -154,8 +154,8 @@ install_zypper_packages() {
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
   for PACKAGE in ${ZYPPER_PACKAGE_LIST}
   do
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper -n --no-refresh install -l ${PACKAGE}${NC}"
-    ${SUDO_CMD} zypper -n --no-refresh install -l ${PACKAGE}
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper -n --no-refresh install --allow-unsigned-rpm -l ${PACKAGE}${NC}"
+    ${SUDO_CMD} zypper -n --no-refresh install --allow-unsigned-rpm -l ${PACKAGE}
   done
   echo
 
@@ -169,14 +169,17 @@ install_zypper_packages() {
 install_custom_remote_zypper_packages() {
   echo -e "${LTBLUE}Installing custom remote zypper packages${NC}"
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
+  echo -e "${RED}WARNING: Manual action may be required to accept packages${NC}"
+  echo -e "${RED}         and accept/ignore signing key warnings.${NC}"
+  echo -e "${RED}----------------------------------------------------${NC}"
   if ! [ -z ${CUSTOM_REMOTE_ZYPPER_PACKAGES} ]
   then
     echo -e "${LTBLUE}Installing custom remote zypper packages${NC}"
     echo -e "${LTBLUE}----------------------------------------------------${NC}"
     for PACKAGE in ${CUSTOM_REMOTE_PACKAGE_LIST}
     do
-      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper -n --no-refresh install -l ${PACKAGE}${NC}"
-      ${SUDO_CMD} zypper -n --no-refresh install -l ${PACKAGE}
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper --no-refresh install --allow-unsigned-rpm -l ${PACKAGE}${NC}"
+      ${SUDO_CMD} zypper -n --no-refresh install --allow-unsigned-rpm -l ${PACKAGE}
     done
     echo
   else
@@ -194,10 +197,15 @@ install_custom_remote_zypper_packages() {
 install_extra_rpms() {
   echo -e "${LTBLUE}Installing custom RPM packages${NC}"
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
+  echo -e "${RED}WARNING: Manual action may be required to accept packages${NC}"
+  echo -e "${RED}         and accept/ignore signing key warnings.${NC}"
+  echo -e "${RED}----------------------------------------------------${NC}"
   if ls ${RPM_SRC_DIR} | grep -q ".rpm"
   then
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} rpm -U ${RPM_SRC_DIR}/*.rpm${NC}"
-    ${SUDO_CMD} rpm -U ${RPM_SRC_DIR}/*.rpm
+    #echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} rpm -U ${RPM_SRC_DIR}/*.rpm${NC}"
+    #${SUDO_CMD} rpm -U ${RPM_SRC_DIR}/*.rpm
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper --no-refresh install --allow-unsigned-rpm -l ${RPM_SRC_DIR}/*.rpm${NC}"
+    ${SUDO_CMD} zypper --no-refresh install --allow-unsigned-rpm -l ${RPM_SRC_DIR}/*.rpm
     echo
   else
     echo -e "${LTCYAN}(No custom RPM packages found)${NC}"
@@ -219,6 +227,101 @@ remove_zypper_packages() {
     echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper -n --no-refresh remove -u ${PACKAGE}${NC}"
     ${SUDO_CMD} zypper -n --no-refresh remove -u ${PACKAGE}
   done
+  echo
+
+  case ${STEPTHROUGH} in
+    Y)
+      pause_for_stepthrough
+    ;;
+  esac
+}
+
+install_flatpaks() {
+  echo -e "${LTBLUE}Installing Flatpaks${NC}"
+  echo -e "${LTBLUE}----------------------------------------------------${NC}"
+  if which flatpak > /dev/null 2>&1
+  then
+
+    if ! [ -e ${FLATPAK_REMOTE_LIST} ]
+    then
+      echo -e "${LTBLUE}Adding Flatpak remotes ...${NC}"
+      for FLATPAK_REMOTE in ${FLATPAK_REMOTE_LIST}
+      do
+        local FLATPAK_REMOTE_NAME="$(echo ${FLATPAK_REMOTE} | cut -d + -f 1)"
+        local FLATPAK_REMOTE_URL="$(echo ${FLATPAK_REMOTE} | cut -d + -f 2)"
+        echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} flatpak remote-add --if-not-exists ${FLATPAK_REMOTE_NAME} ${FLATPAK_REMOTE_URL}${NC}"
+        ${SUDO_CMD} flatpak remote-add --if-not-exists ${FLATPAK_REMOTE_NAME} ${FLATPAK_REMOTE_URL}
+      done
+    else
+      echo -e "${LTCYAN}(no Flatpak remotes specified)${NC}"
+    fi
+
+    if ! [ -e ${FLATPAK_INSTALL_LIST} ]
+    then
+      echo -e "${LTBLUE}Installing Flatpaks ...${NC}"
+      for FLATPAK in ${FLATPAK_INSTALL_LIST}
+      do
+        echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} flatpak install --noninteractive --assumeyes ${FLATPAK}${NC}"
+        ${SUDO_CMD} flatpak install --noninteractive --assumeyes ${FLATPAK}
+      done
+    else
+      echo -e "${LTCYAN}(no Flatpaks specified)${NC}"
+    fi
+  fi
+  echo
+
+  case ${STEPTHROUGH} in
+    Y)
+      pause_for_stepthrough
+    ;;
+  esac
+}
+
+install_appimages() {
+  echo -e "${LTBLUE}Configuring AppImages${NC}"
+  echo -e "${LTBLUE}----------------------------------------------------${NC}"
+  case ${ENABLE_APPIMAGED} in
+    Y|y|yes|Yes|YES)
+      if ! [ -d ${APPIMAGE_INSTALL_DIR} ]
+      then
+        echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} mkdir -p ${APPIMAGE_INSTALL_DIR}${NC}"
+        ${SUDO_CMD} mkdir -p ${APPIMAGE_INSTALL_DIR}
+        echo -e "${PURPLE}  The AppImage system directory is: ${APPIMAGE_INSTALL_DIR}${NC}"
+  
+        echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} cp ${APPIMAGE_SRC_DIR}/*.AppImage ${APPIMAGE_INSTALL_DIR}${NC}"
+        ${SUDO_CMD} cp ${APPIMAGE_SRC_DIR}/*.AppImage ${APPIMAGE_INSTALL_DIR}
+  
+        for USER in ${USER_LIST}
+        do
+          echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD}  systemctl enable --machine=${USER}@.host --user appimaged.service${NC}"
+          ${SUDO_CMD} systemctl enable --machine=${USER}@.host --user appimaged.service
+        done
+      fi
+    ;;
+    *)
+      echo -e "${LTCYAN}(appimaged not enabled)${NC}"
+      
+      if ls ${APPIMAGE_INSTALL_DIR}/*.AppImage > /dev/null 2>&1
+      then
+        echo -e "${PURPLE}The AppImage daemon is not enabled but there are AppImages available to install/run.${NC}"
+        echo
+        if ! which AppImageLauncher > /dev/null 2>&1
+        then
+          echo -e "${PURPLE}You can manually install these AppImages by first installing the AppImageLauncher RPM${NC}"
+          echo -e "${PURPLE}from here: https://github.com/TheAssassin/AppImageLauncher/releases${NC}"
+          echo -e "${PURPLE}and then double-clicking on each of the *.AppImage files in the ${APPIMAGE_INSTALL_DIR}.${NC}"
+          echo -e "${PURPLE}They will then be installed and available for your user.${NC}"
+          echo -e "${PURPLE}or${NC}"
+          echo -e "${PURPLE}You can manually run these AppImages by double-clicking on the *.AppImage files in${NC}"
+          echo -e "${PURPLE}the ${APPIMAGE_INSTALL_DIR} directory.${NC}"
+        else
+          echo -e "${PURPLE}You can manually install these AppImages by double-clicking on each of the *.AppImage${NC}"
+          echo -e "${PURPLE}files in the ${APPIMAGE_INSTALL_DIR} directory.${NC}"
+          echo -e "${PURPLE}They will then be installed and available for your user.${NC}"
+        fi
+      fi
+    ;;
+  esac
   echo
 
   case ${STEPTHROUGH} in
@@ -559,10 +662,10 @@ install_user_environment() {
 
   echo -e "${LTCYAN}/etc/polkit-default-privs.local${NC}"
   echo -e "${LTCYAN}----------------------${NC}"
-  #echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} sed -i 's/org.freedesktop.packagekit.system-sources-refresh.*/org.freedesktop.packagekit.system-sources-refresh               yes:yes:yes/' /etc/polkit-default-privs.standard${NC}"
-  #${SUDO_CMD} sed -i 's/org.freedesktop.packagekit.system-sources-refresh.*/org.freedesktop.packagekit.system-sources-refresh               yes:yes:yes/' /etc/polkit-default-privs.standard
-  echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} echo org.freedesktop.packagekit.system-sources-refresh               yes:yes:yes >> /etc/polkit-default-privs.local${NC}"
-  ${SUDO_CMD} echo org.freedesktop.packagekit.system-sources-refresh               yes:yes:yes >> /etc/polkit-default-privs.local
+  #echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} ish -c sed -i 's/org.freedesktop.packagekit.system-sources-refresh.*/org.freedesktop.packagekit.system-sources-refresh               yes:yes:yes/' /etc/polkit-default-privs.standard${NC}"
+  #${SUDO_CMD} sh -c 'sed -i \'s/org.freedesktop.packagekit.system-sources-refresh.*/org.freedesktop.packagekit.system-sources-refresh               yes:yes:yes/\' /etc/polkit-default-privs.standard'
+  echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} \'sh -c echo org.freedesktop.packagekit.system-sources-refresh               yes:yes:yes >> /etc/polkit-default-privs.local\'${NC}"
+  ${SUDO_CMD} sh -c 'echo org.freedesktop.packagekit.system-sources-refresh               yes:yes:yes >> /etc/polkit-default-privs.local'
   echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} set_polkit_default_privs${NC}"
   ${SUDO_CMD} set_polkit_default_privs
 
@@ -660,9 +763,9 @@ install_user_environment() {
   ${SUDO_CMD} cp ${FILES_SRC_DIR}/mimeapps.list /root/.config/
 
   # Vim
-  if ! grep -q "set noautoindent" /root/.vimrc
+  if ! ${SUDO_CMD} sh -c 'grep -q "set noautoindent" /root/.vimrc'
   then
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} sh -c 'echo \"set noautoindent\" >> /root/.vimrc'${NC}"
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} sh -c \'echo \"set noautoindent\" >> /root/.vimrc\'${NC}"
     ${SUDO_CMD} sh -c 'echo "set noautoindent" >> /root/.vimrc'
   fi
 
@@ -772,18 +875,15 @@ configure_displaymanager() {
   esac
 }
 
-update_virtualbox_extensions() {
-  echo -e "${LTBLUE}Installing Virtualbox Extension Pack${NC}"
+install_virtualbox() {
+  echo -e "${LTBLUE}Installing Virtualbox${NC}"
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
 
   if ! rpm -qa | grep -q virtualbox
   then
-    if echo ${*} | grep -q install-vbox
-    then
-      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper -n --no-refresh install -l --allow-unsigned-rpm virtualbox-qt${NC}"
-      ${SUDO_CMD} zypper -n --no-refresh install -l --allow-unsigned-rpm virtualbox-qt
-      echo
-    fi
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper -n --no-refresh install -l --allow-unsigned-rpm virtualbox-qt${NC}"
+    ${SUDO_CMD} zypper -n --no-refresh install -l --allow-unsigned-rpm virtualbox-qt
+    echo
   fi
 
   if rpm -qa | grep -q virtualbox
@@ -972,6 +1072,13 @@ enable_services() {
   done
 }
 
+run_custom_scripts() {
+  echo -e "${LTBLUE}Running Custom Scripts${NC}"
+  echo -e "${LTBLUE}----------------------------------------------------${NC}"
+
+  source ${INCLUDE_DIR}/*.sh
+}
+
 #############################################################################
 
 main() {
@@ -1037,7 +1144,8 @@ main() {
     install_custom_remote_zypper_packages
     remove_zypper_packages
     install_extra_rpms
-    install_atom_editor
+    install_flatpaks
+    install_appimages
   elif echo ${*} | grep -q tools-only
   then
     install_labmachine_scripts
@@ -1046,9 +1154,6 @@ main() {
   then
     install_modprobe_config
     configure_libvirt
-  elif echo ${*} | grep -q vbox-only
-  then
-    update_virtualbox_extensions ${*}
   elif echo ${*} | grep -q user_env-only
   then
     install_wallpapers
@@ -1067,15 +1172,23 @@ main() {
     install_custom_remote_zypper_packages
     remove_zypper_packages
     install_extra_rpms
-    install_atom_editor
+    # other packages/apps
+    install_flatpaks
+    install_appimages
     # libvirt
     install_modprobe_config
     configure_libvirt
     # tools
     install_labmachine_scripts
     install_image_building_tools
-    # vbox
-    update_virtualbox_extensions ${*}
+    if echo ${*} | grep -q install-virtualbox
+    then
+      install_virtualbox ${*}
+    fi
+    if echo ${*} | grep -q install-atom_editor
+    then
+      install_atom_editor
+    fi
     if echo ${*} | grep -q install-teams
     then
       install_teams
@@ -1093,9 +1206,16 @@ main() {
     install_libreoffice_color_palettes
     install_user_environment
     configure_displaymanager
+    # custom scripts
+    run_custom_scripts
     # services
     enable_services
   fi
+
+  echo "======================================================================"
+  echo "                           Finished"
+  echo "======================================================================"
+  echo
 }
 
 #############################################################################
