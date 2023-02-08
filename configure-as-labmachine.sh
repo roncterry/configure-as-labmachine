@@ -1,5 +1,5 @@
 #!/bin/bash
-# version: 2.4.0
+# version: 2.4.1
 # date: 2023-02-07
 
 CONFIG_DIR="./config"
@@ -242,7 +242,7 @@ install_flatpaks() {
   if which flatpak > /dev/null 2>&1
   then
 
-    if ! [ -e ${FLATPAK_REMOTE_LIST} ]
+    if ! [ -z ${FLATPAK_REMOTE_LIST} ]
     then
       echo -e "${LTBLUE}Adding Flatpak remotes ...${NC}"
       for FLATPAK_REMOTE in ${FLATPAK_REMOTE_LIST}
@@ -256,7 +256,7 @@ install_flatpaks() {
       echo -e "${LTCYAN}(no Flatpak remotes specified)${NC}"
     fi
 
-    if ! [ -e ${FLATPAK_INSTALL_LIST} ]
+    if ! [ -z "${FLATPAK_INSTALL_LIST}" ]
     then
       echo -e "${LTBLUE}Installing Flatpaks ...${NC}"
       for FLATPAK in ${FLATPAK_INSTALL_LIST}
