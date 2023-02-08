@@ -1,6 +1,6 @@
 #!/bin/bash
-# version: 2.4.1
-# date: 2023-02-07
+# version: 3.0.0
+# date: 2023-02-08
 
 CONFIG_DIR="./config"
 INCLUDE_DIR="./include"
@@ -29,7 +29,9 @@ source /etc/os-release
 normalize_distro_names
 
 source ${CONFIG_DIR}/configure-as-labmachine.cfg
-source ${INCLUDE_DIR}/*.sh
+#source ${INCLUDE_DIR}/*.sh
+
+STEPTHROUGH_INITIAL_PAUSE=2
 
 #############################################################################
 
@@ -62,7 +64,7 @@ set_colors() {
 
 usage() {
   echo
-  echo "USAGE: ${1} [base_env-only] [user_env-only] [packages-only] [tools-only] [libvirt-only] [install-virtualbox] [install-atom_editor] [install-insync] [install-teams] [install-zoom] [no_restart_gui] [nocolor] [stepthrough]"
+  echo "USAGE: ${1} [base_env_only] [base_virt_env_only] [user_env_only] [packages_only] [tools_only] [libvirt_only] [install_virtualbox] [install_atom_editor] [install_insync] [install_teams] [install_zoom] [no_restart_gui] [nocolor] [stepthrough]"
   echo
   exit
 }
@@ -73,9 +75,16 @@ pause_for_stepthrough() {
   echo
 }
 
-add_zypper_repos() {
-  echo -e "${LTBLUE}Adding zypper repositories${NC}"
+add_zypper_base_repos() {
+  echo -e "${LTBLUE}Adding base zypper repositories${NC}"
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
+
+  case ${STEPTHROUGH} in
+    Y)
+      sleep ${STEPTHROUGH_INITIAL_PAUSE}
+    ;;
+  esac
+
 
   if ! grep -q "dl.google.com" /etc/zypp/repos.d/*.repo
   then
@@ -84,18 +93,52 @@ add_zypper_repos() {
     ${SUDO_CMD} zypper addrepo http://dl.google.com/linux/chrome/rpm/stable/x86_64 google-chrome
     if ! [ -e ${FILES_SRC_DIR}/linux_signing_key.pub ]
     then
-      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} cd ${FILES_SRC_DIR}${NC}"
-      ${SUDO_CMD} cd ${FILES_SRC_DIR}
+      echo -e "${LTGREEN}COMMAND:${NC}  cd ${FILES_SRC_DIR}${NC}"
+      cd ${FILES_SRC_DIR}
       echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} wget https://dl.google.com/linux/linux_signing_key.pub${NC}"
       ${SUDO_CMD} wget https://dl.google.com/linux/linux_signing_key.pub
       echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} rpm --import linux_signing_key.pub${NC}"
       ${SUDO_CMD} rpm --import linux_signing_key.pub
-      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} cd -${NC}"
-      ${SUDO_CMD} cd - > /dev/null
+      echo -e "${LTGREEN}COMMAND:${NC}  cd -${NC}"
+      cd - > /dev/null
     fi
   fi
 
-  for REPO in ${ZYPPER_REPO_LIST}
+  for REPO in ${ZYPPER_BASE_REPO_LIST}
+  do
+    REPO_URL="$(echo ${REPO} | cut -d , -f 1)"
+    REPO_NAME="$(echo ${REPO} | cut -d , -f 2)"
+
+    echo -e "${LTCYAN}${REPO_NAME}${NC}"
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper removerepo ${REPO_URL} ${REPO_NAME}${NC}"
+    ${SUDO_CMD} zypper removerepo ${REPO_URL} ${REPO_NAME}
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper addrepo ${REPO_URL} ${REPO_NAME}${NC}"
+    ${SUDO_CMD} zypper addrepo ${REPO_URL} ${REPO_NAME}
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper modifyrepo -e -F ${REPO_NAME}${NC}"
+    ${SUDO_CMD} zypper modifyrepo -e -F ${REPO_NAME}
+  done
+
+  echo
+
+  case ${STEPTHROUGH} in
+    Y)
+      pause_for_stepthrough
+    ;;
+  esac
+}
+
+add_zypper_extra_repos() {
+  echo -e "${LTBLUE}Adding extra zypper repositories${NC}"
+  echo -e "${LTBLUE}----------------------------------------------------${NC}"
+
+  case ${STEPTHROUGH} in
+    Y)
+      sleep ${STEPTHROUGH_INITIAL_PAUSE}
+    ;;
+  esac
+
+
+  for REPO in ${ZYPPER_EXTRA_REPO_LIST}
   do
     REPO_URL="$(echo ${REPO} | cut -d , -f 1)"
     REPO_NAME="$(echo ${REPO} | cut -d , -f 2)"
@@ -121,6 +164,13 @@ add_zypper_repos() {
 refresh_zypper_repos() {
   echo -e "${LTBLUE}Refreshing zypper repos${NC}"
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
+
+  case ${STEPTHROUGH} in
+    Y)
+      sleep ${STEPTHROUGH_INITIAL_PAUSE}
+    ;;
+  esac
+
   echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper --no-gpg-checks --gpg-auto-import-keys ref${NC}"
   ${SUDO_CMD} zypper --gpg-auto-import-keys ref
   echo
@@ -132,10 +182,17 @@ refresh_zypper_repos() {
   esac
 }
 
-install_zypper_patterns() {
-  echo -e "${LTBLUE}Installing zypper patterns${NC}"
+install_zypper_base_patterns() {
+  echo -e "${LTBLUE}Installing base zypper patterns${NC}"
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
-  for PATTERN in ${ZYPPER_PATTERN_LIST}
+
+  case ${STEPTHROUGH} in
+    Y)
+      sleep ${STEPTHROUGH_INITIAL_PAUSE}
+    ;;
+  esac
+
+  for PATTERN in ${ZYPPER_BASE_PATTERN_LIST}
   do
     echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper -n --no-refresh install -t ${PATTERN}${NC}"
     ${SUDO_CMD} zypper -n --no-refresh install -t pattern ${PATTERN}
@@ -149,10 +206,113 @@ install_zypper_patterns() {
   esac
 }
 
-install_zypper_packages() {
-  echo -e "${LTBLUE}Installing zypper packages${NC}"
+install_zypper_virt_patterns() {
+  echo -e "${LTBLUE}Installing virtualization zypper patterns${NC}"
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
-  for PACKAGE in ${ZYPPER_PACKAGE_LIST}
+
+  case ${STEPTHROUGH} in
+    Y)
+      sleep ${STEPTHROUGH_INITIAL_PAUSE}
+    ;;
+  esac
+
+  for PATTERN in ${ZYPPER_VIRT_PATTERN_LIST}
+  do
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper -n --no-refresh install -t ${PATTERN}${NC}"
+    ${SUDO_CMD} zypper -n --no-refresh install -t pattern ${PATTERN}
+  done
+  echo
+
+  case ${STEPTHROUGH} in
+    Y)
+      pause_for_stepthrough
+    ;;
+  esac
+}
+
+install_zypper_base_packages() {
+  echo -e "${LTBLUE}Installing zypper base system packages${NC}"
+  echo -e "${LTBLUE}----------------------------------------------------${NC}"
+
+  case ${STEPTHROUGH} in
+    Y)
+      sleep ${STEPTHROUGH_INITIAL_PAUSE}
+    ;;
+  esac
+
+  for PACKAGE in ${ZYPPER_BASE_PACKAGE_LIST}
+  do
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper -n --no-refresh install --allow-unsigned-rpm -l ${PACKAGE}${NC}"
+    ${SUDO_CMD} zypper -n --no-refresh install --allow-unsigned-rpm -l ${PACKAGE}
+  done
+  echo
+
+  case ${STEPTHROUGH} in
+    Y)
+      pause_for_stepthrough
+    ;;
+  esac
+}
+
+install_zypper_virt_packages() {
+  echo -e "${LTBLUE}Installing zypper virtualization packages${NC}"
+  echo -e "${LTBLUE}----------------------------------------------------${NC}"
+
+  case ${STEPTHROUGH} in
+    Y)
+      sleep ${STEPTHROUGH_INITIAL_PAUSE}
+    ;;
+  esac
+
+  for PACKAGE in ${ZYPPER_VIRT_PACKAGE_LIST}
+  do
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper -n --no-refresh install --allow-unsigned-rpm -l ${PACKAGE}${NC}"
+    ${SUDO_CMD} zypper -n --no-refresh install --allow-unsigned-rpm -l ${PACKAGE}
+  done
+  echo
+
+  case ${STEPTHROUGH} in
+    Y)
+      pause_for_stepthrough
+    ;;
+  esac
+}
+
+install_zypper_remote_access_packages() {
+  echo -e "${LTBLUE}Installing zypper remote access packages${NC}"
+  echo -e "${LTBLUE}----------------------------------------------------${NC}"
+
+  case ${STEPTHROUGH} in
+    Y)
+      sleep ${STEPTHROUGH_INITIAL_PAUSE}
+    ;;
+  esac
+
+  for PACKAGE in ${ZYPPER_REMOTE_ACCESS_PACKAGE_LIST}
+  do
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper -n --no-refresh install --allow-unsigned-rpm -l ${PACKAGE}${NC}"
+    ${SUDO_CMD} zypper -n --no-refresh install --allow-unsigned-rpm -l ${PACKAGE}
+  done
+  echo
+
+  case ${STEPTHROUGH} in
+    Y)
+      pause_for_stepthrough
+    ;;
+  esac
+}
+
+install_zypper_dev_packages() {
+  echo -e "${LTBLUE}Installing zypper developoment packages${NC}"
+  echo -e "${LTBLUE}----------------------------------------------------${NC}"
+
+  case ${STEPTHROUGH} in
+    Y)
+      sleep ${STEPTHROUGH_INITIAL_PAUSE}
+    ;;
+  esac
+
+  for PACKAGE in ${ZYPPER_DEV_PACKAGE_LIST}
   do
     echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper -n --no-refresh install --allow-unsigned-rpm -l ${PACKAGE}${NC}"
     ${SUDO_CMD} zypper -n --no-refresh install --allow-unsigned-rpm -l ${PACKAGE}
@@ -172,6 +332,13 @@ install_custom_remote_zypper_packages() {
   echo -e "${RED}WARNING: Manual action may be required to accept packages${NC}"
   echo -e "${RED}         and accept/ignore signing key warnings.${NC}"
   echo -e "${RED}----------------------------------------------------${NC}"
+
+  case ${STEPTHROUGH} in
+    Y)
+      sleep ${STEPTHROUGH_INITIAL_PAUSE}
+    ;;
+  esac
+
   if ! [ -z ${CUSTOM_REMOTE_ZYPPER_PACKAGES} ]
   then
     echo -e "${LTBLUE}Installing custom remote zypper packages${NC}"
@@ -200,6 +367,13 @@ install_extra_rpms() {
   echo -e "${RED}WARNING: Manual action may be required to accept packages${NC}"
   echo -e "${RED}         and accept/ignore signing key warnings.${NC}"
   echo -e "${RED}----------------------------------------------------${NC}"
+
+  case ${STEPTHROUGH} in
+    Y)
+      sleep ${STEPTHROUGH_INITIAL_PAUSE}
+    ;;
+  esac
+
   if ls ${RPM_SRC_DIR} | grep -q ".rpm"
   then
     #echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} rpm -U ${RPM_SRC_DIR}/*.rpm${NC}"
@@ -222,6 +396,13 @@ install_extra_rpms() {
 remove_zypper_packages() {
   echo -e "${LTBLUE}Removing zypper packages${NC}"
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
+
+  case ${STEPTHROUGH} in
+    Y)
+      sleep ${STEPTHROUGH_INITIAL_PAUSE}
+    ;;
+  esac
+
   for PACKAGE in ${ZYPPER_REMOVE_PACKAGE_LIST}
   do
     echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper -n --no-refresh remove -u ${PACKAGE}${NC}"
@@ -236,15 +417,46 @@ remove_zypper_packages() {
   esac
 }
 
+remove_zypper_patterns() {
+  echo -e "${LTBLUE}Removing zypper patterns${NC}"
+  echo -e "${LTBLUE}----------------------------------------------------${NC}"
+
+  case ${STEPTHROUGH} in
+    Y)
+      sleep ${STEPTHROUGH_INITIAL_PAUSE}
+    ;;
+  esac
+
+  for PATTERN in ${ZYPPER_REMOVE_PATTERN_LIST}
+  do
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper -n --no-refresh remove -u -t pattern ${PATTERN}${NC}"
+    ${SUDO_CMD} zypper -n --no-refresh remove -u -t pattern ${PATTERN}
+  done
+  echo
+
+  case ${STEPTHROUGH} in
+    Y)
+      pause_for_stepthrough
+    ;;
+  esac
+}
+
 install_flatpaks() {
   echo -e "${LTBLUE}Installing Flatpaks${NC}"
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
+
+  case ${STEPTHROUGH} in
+    Y)
+      sleep ${STEPTHROUGH_INITIAL_PAUSE}
+    ;;
+  esac
+
   if which flatpak > /dev/null 2>&1
   then
 
     if ! [ -z ${FLATPAK_REMOTE_LIST} ]
     then
-      echo -e "${LTBLUE}Adding Flatpak remotes ...${NC}"
+      echo -e "${LTCYAN}Adding Flatpak remotes ...${NC}"
       for FLATPAK_REMOTE in ${FLATPAK_REMOTE_LIST}
       do
         local FLATPAK_REMOTE_NAME="$(echo ${FLATPAK_REMOTE} | cut -d + -f 1)"
@@ -258,7 +470,7 @@ install_flatpaks() {
 
     if ! [ -z "${FLATPAK_INSTALL_LIST}" ]
     then
-      echo -e "${LTBLUE}Installing Flatpaks ...${NC}"
+      echo -e "${LTCYAN}Installing Flatpaks ...${NC}"
       for FLATPAK in ${FLATPAK_INSTALL_LIST}
       do
         echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} flatpak install --noninteractive --assumeyes ${FLATPAK}${NC}"
@@ -280,6 +492,13 @@ install_flatpaks() {
 install_appimages() {
   echo -e "${LTBLUE}Configuring AppImages${NC}"
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
+
+  case ${STEPTHROUGH} in
+    Y)
+      sleep ${STEPTHROUGH_INITIAL_PAUSE}
+    ;;
+  esac
+
   case ${ENABLE_APPIMAGED} in
     Y|y|yes|Yes|YES)
       if ! [ -d ${APPIMAGE_INSTALL_DIR} ]
@@ -334,6 +553,13 @@ install_appimages() {
 configure_sudo() {
   echo -e "${LTBLUE}Configuring sudo${NC}"
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
+
+  case ${STEPTHROUGH} in
+    Y)
+      sleep ${STEPTHROUGH_INITIAL_PAUSE}
+    ;;
+  esac
+
   if ! which sudo > /dev/null
   then
     echo -e "${LTCYAN}sudo Not Installed.  Installing ...${NC}"
@@ -372,6 +598,13 @@ configure_sudo() {
 install_modprobe_config() {
   echo -e "${LTBLUE}Installing modprobe configuration${NC}"
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
+
+  case ${STEPTHROUGH} in
+    Y)
+      sleep ${STEPTHROUGH_INITIAL_PAUSE}
+    ;;
+  esac
+
   if ! [ -e /etc/modprobe.d/50-kvm.conf ]
   then
     echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/50-kvm.conf /etc/modprobe.d${NC}"
@@ -394,6 +627,14 @@ install_modprobe_config() {
 configure_libvirt() {
   echo -e "${LTBLUE}Configuring Libvirt${NC}"
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
+
+  case ${STEPTHROUGH} in
+    Y)
+      sleep ${STEPTHROUGH_INITIAL_PAUSE}
+    ;;
+  esac
+
+
   # Change to UNIX socket based access and authorization
   echo -e "${LTCYAN}/etc/libvirt/libvirtd.conf:${NC}"
   echo -e "${LTCYAN}unix_sock_group = \"libvirt\"${NC}"
@@ -500,6 +741,13 @@ configure_libvirt() {
 install_labmachine_scripts() {
   echo -e "${LTBLUE}Installing Labmachine Scripts${NC}"
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
+
+  case ${STEPTHROUGH} in
+    Y)
+      sleep ${STEPTHROUGH_INITIAL_PAUSE}
+    ;;
+  esac
+
   if [ -e ${FILES_SRC_DIR}/labmachine_scripts.tgz ]
   then
     echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} tar -C / -xzf ${FILES_SRC_DIR}/labmachine_scripts.tgz ${NC}"
@@ -527,6 +775,13 @@ install_labmachine_scripts() {
 install_image_building_tools() {
   echo -e "${LTBLUE}Installing Image Building Tools${NC}"
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
+
+  case ${STEPTHROUGH} in
+    Y)
+      sleep ${STEPTHROUGH_INITIAL_PAUSE}
+    ;;
+  esac
+
   if [ -e ${FILES_SRC_DIR}/image_building.tgz ]
   then
     echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} tar -C /opt -xzf ${FILES_SRC_DIR}/image_building.tgz ${NC}"
@@ -554,6 +809,13 @@ install_image_building_tools() {
 create_default_dirs() {
   echo -e "${LTBLUE}Creating Default Directories${NC}"
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
+
+  case ${STEPTHROUGH} in
+    Y)
+      sleep ${STEPTHROUGH_INITIAL_PAUSE}
+    ;;
+  esac
+
   echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} mkdir -p /install/courses${NC}"
   ${SUDO_CMD} mkdir -p /install/courses
   echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown -R .users /install/courses${NC}"
@@ -593,6 +855,13 @@ create_default_dirs() {
 install_wallpapers() {
   echo -e "${LTBLUE}Installing Wallpapers${NC}"
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
+
+  case ${STEPTHROUGH} in
+    Y)
+      sleep ${STEPTHROUGH_INITIAL_PAUSE}
+    ;;
+  esac
+
   if [ -e ${FILES_SRC_DIR}/wallpapers.tgz ]
   then
     echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} tar -C /usr/share -xzf ${FILES_SRC_DIR}/wallpapers.tgz ${NC}"
@@ -620,9 +889,16 @@ install_wallpapers() {
   esac
 }
 
-install_libreoffice_color_palettes() {
-  echo -e "${LTBLUE}Installing LibreOffice Color palettes${NC}"
+install_libreoffice_config() {
+  echo -e "${LTBLUE}Installing LibreOffice Config (Color Palettes, etc)  ${NC}"
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
+
+  case ${STEPTHROUGH} in
+    Y)
+      sleep ${STEPTHROUGH_INITIAL_PAUSE}
+    ;;
+  esac
+
   if ls ${FILES_SRC_DIR}/ | grep -q ".soc"
   then
     echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/*.soc /usr/lib64/libreoffice/share/palette/ ${NC}"
@@ -647,6 +923,13 @@ install_libreoffice_color_palettes() {
 install_user_environment() {
   echo -e "${LTBLUE}Installing User Environments${NC}"
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
+
+  case ${STEPTHROUGH} in
+    Y)
+      sleep ${STEPTHROUGH_INITIAL_PAUSE}
+    ;;
+  esac
+
 
   echo -e "${LTCYAN}/etc/dconf/:${NC}"
   echo -e "${LTCYAN}----------------------${NC}"
@@ -703,10 +986,10 @@ install_user_environment() {
   fi
 
   # XFCE4
-  echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} tar -C /etc/skel/.config/ -xzf ${FILES_SRC_DIR}/xfce4.tgz${NC}"
-  ${SUDO_CMD} tar -C /etc/skel/.config/ -xzf ${FILES_SRC_DIR}/xfce4.tgz
-  echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} tar -C /etc/skel/.config/ -xzf ${FILES_SRC_DIR}/Thunar.tgz${NC}"
-  ${SUDO_CMD} tar -C /etc/skel/.config/ -xzf ${FILES_SRC_DIR}/Thunar.tgz
+  #echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} tar -C /etc/skel/.config/ -xzf ${FILES_SRC_DIR}/xfce4.tgz${NC}"
+  #${SUDO_CMD} tar -C /etc/skel/.config/ -xzf ${FILES_SRC_DIR}/xfce4.tgz
+  #echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} tar -C /etc/skel/.config/ -xzf ${FILES_SRC_DIR}/Thunar.tgz${NC}"
+  #${SUDO_CMD} tar -C /etc/skel/.config/ -xzf ${FILES_SRC_DIR}/Thunar.tgz
 
   # mime
   echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/mimeapps.list /etc/skel/.config/${NC}"
@@ -753,10 +1036,10 @@ install_user_environment() {
   fi
 
   # XFCE4
-  echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} tar -C /root/.config/ -xzf ${FILES_SRC_DIR}/xfce4.tgz${NC}"
-  ${SUDO_CMD} tar -C /root/.config/ -xzf ${FILES_SRC_DIR}/xfce4.tgz
-  echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} tar -C /root/.config/ -xzf ${FILES_SRC_DIR}/Thunar.tgz${NC}"
-  ${SUDO_CMD} tar -C /root/.config/ -xzf ${FILES_SRC_DIR}/Thunar.tgz
+  #echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} tar -C /root/.config/ -xzf ${FILES_SRC_DIR}/xfce4.tgz${NC}"
+  #${SUDO_CMD} tar -C /root/.config/ -xzf ${FILES_SRC_DIR}/xfce4.tgz
+  #echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} tar -C /root/.config/ -xzf ${FILES_SRC_DIR}/Thunar.tgz${NC}"
+  #${SUDO_CMD} tar -C /root/.config/ -xzf ${FILES_SRC_DIR}/Thunar.tgz
 
   # mime
   echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/mimeapps.list /root/.config/${NC}"
@@ -805,10 +1088,10 @@ install_user_environment() {
     fi
 
     # XFCE4
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} tar -C /home/${USER}/.config/ -xzf ${FILES_SRC_DIR}/xfce4.tgz${NC}"
-    ${SUDO_CMD} tar -C /home/${USER}/.config/ -xzf ${FILES_SRC_DIR}/xfce4.tgz
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} tar -C /home/${USER}/.config/ -xzf ${FILES_SRC_DIR}/Thunar.tgz${NC}"
-    ${SUDO_CMD} tar -C /home/${USER}/.config/ -xzf ${FILES_SRC_DIR}/Thunar.tgz
+    #echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} tar -C /home/${USER}/.config/ -xzf ${FILES_SRC_DIR}/xfce4.tgz${NC}"
+    #${SUDO_CMD} tar -C /home/${USER}/.config/ -xzf ${FILES_SRC_DIR}/xfce4.tgz
+    #echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} tar -C /home/${USER}/.config/ -xzf ${FILES_SRC_DIR}/Thunar.tgz${NC}"
+    #${SUDO_CMD} tar -C /home/${USER}/.config/ -xzf ${FILES_SRC_DIR}/Thunar.tgz
 
     # mime
     echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/mimeapps.list /home/${USER}/.config/${NC}"
@@ -849,6 +1132,13 @@ configure_displaymanager() {
   echo -e "${LTBLUE}Configure the Display Manager${NC}"
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
 
+  case ${STEPTHROUGH} in
+    Y)
+      sleep ${STEPTHROUGH_INITIAL_PAUSE}
+    ;;
+  esac
+
+
   echo -e "${LTCYAN}DISPLAYMANAGER_XSERVER="Xorg"${NC}"
   ${SUDO_CMD} sed -i 's/^DISPLAYMANAGER_XSERVER=.*/DISPLAYMANAGER_XSERVER="Xorg"/' /etc/sysconfig/displaymanager
 
@@ -878,6 +1168,13 @@ configure_displaymanager() {
 install_virtualbox() {
   echo -e "${LTBLUE}Installing Virtualbox${NC}"
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
+
+  case ${STEPTHROUGH} in
+    Y)
+      sleep ${STEPTHROUGH_INITIAL_PAUSE}
+    ;;
+  esac
+
 
   if ! rpm -qa | grep -q virtualbox
   then
@@ -910,6 +1207,13 @@ install_virtualbox() {
 install_atom_editor() {
   echo -e "${LTBLUE}Installing the Atom Editor${NC}"
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
+
+  case ${STEPTHROUGH} in
+    Y)
+      sleep ${STEPTHROUGH_INITIAL_PAUSE}
+    ;;
+  esac
+
 
   if ! grep -q "packagecloud.io/AtomEditor" /etc/zypp/repos.d/*.repo
   then
@@ -983,6 +1287,13 @@ install_teams() {
   echo -e "${LTBLUE}Installing Microsoft Teams${NC}"
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
 
+  case ${STEPTHROUGH} in
+    Y)
+      sleep ${STEPTHROUGH_INITIAL_PAUSE}
+    ;;
+  esac
+
+
   if ! grep -q "packages.microsoft.com/yumrepos/ms-teams" /etc/zypp/repos.d/*.repo
   then
     ${SUDO_CMD} sh -c 'echo -e "[teams]\nname=teams\nenabled=1\nautorefresh=0\nbaseurl=https://packages.microsoft.com/yumrepos/ms-teams\ntype=rpm-md\ngpgkey=https://packages.microsoft.com/keys/microsoft.asc\nkeeppackages=0" > /etc/zypp/repos.d/teams.repo'
@@ -1008,6 +1319,13 @@ install_zoom() {
   echo -e "${LTBLUE}Installing Zoom${NC}"
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
 
+  case ${STEPTHROUGH} in
+    Y)
+      sleep ${STEPTHROUGH_INITIAL_PAUSE}
+    ;;
+  esac
+
+
   echo -e "${LTGREEN}COMMAND:${NC} ${SUDO_CMD} rpm --import https://zoom.us/linux/download/pubkey${NC}"
   ${SUDO_CMD} rpm --import https://zoom.us/linux/download/pubkey
   echo -e "${LTGREEN}COMMAND:${NC} ${SUDO_CMD} zypper --non-interactive --no-refresh install -l --allow-unsigned-rpm https://zoom.us/client/latest/zoom_openSUSE_x86_64.rpm ${NC}"
@@ -1023,6 +1341,13 @@ install_zoom() {
 install_insync() {
   echo -e "${LTBLUE}Installing Insync${NC}"
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
+
+  case ${STEPTHROUGH} in
+    Y)
+      sleep ${STEPTHROUGH_INITIAL_PAUSE}
+    ;;
+  esac
+
 
   if ! grep -q "yum.insync.io/fedora/27" /etc/zypp/repos.d/*.repo
   then
@@ -1046,10 +1371,62 @@ install_insync() {
   esac
 }
 
-enable_services() {
-  echo -e "${LTBLUE}Enabling/Starting Services${NC}"
+enable_base_services() {
+  echo -e "${LTBLUE}Enabling/Starting Base Services${NC}"
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
-  for SERVICE in ${ENABLED_SERVICES_LIST}
+  for SERVICE in ${ENABLED_BASE_SERVICES_LIST}
+  do
+    if echo ${*} | grep -q no_restart_gui
+    then
+      if ! echo ${SERVICE} | grep -q display-manager
+      then
+        echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} systemctl enable ${SERVICE}${NC}"
+        ${SUDO_CMD} systemctl enable ${SERVICE}
+  
+        echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} systemctl restart ${SERVICE}${NC}"
+        ${SUDO_CMD} systemctl restart ${SERVICE}
+      fi
+    else
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} systemctl enable ${SERVICE}${NC}"
+      ${SUDO_CMD} systemctl enable ${SERVICE}
+
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} systemctl restart ${SERVICE}${NC}"
+      ${SUDO_CMD} systemctl restart ${SERVICE}
+    fi
+   echo
+  done
+}
+
+enable_virt_services() {
+  echo -e "${LTBLUE}Enabling/Starting Virtualization Services${NC}"
+  echo -e "${LTBLUE}----------------------------------------------------${NC}"
+  for SERVICE in ${ENABLED_VIRT_SERVICES_LIST}
+  do
+    if echo ${*} | grep -q no_restart_gui
+    then
+      if ! echo ${SERVICE} | grep -q display-manager
+      then
+        echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} systemctl enable ${SERVICE}${NC}"
+        ${SUDO_CMD} systemctl enable ${SERVICE}
+  
+        echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} systemctl restart ${SERVICE}${NC}"
+        ${SUDO_CMD} systemctl restart ${SERVICE}
+      fi
+    else
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} systemctl enable ${SERVICE}${NC}"
+      ${SUDO_CMD} systemctl enable ${SERVICE}
+
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} systemctl restart ${SERVICE}${NC}"
+      ${SUDO_CMD} systemctl restart ${SERVICE}
+    fi
+   echo
+  done
+}
+
+enable_remote_access_services() {
+  echo -e "${LTBLUE}Enabling/Starting Remote Access Services${NC}"
+  echo -e "${LTBLUE}----------------------------------------------------${NC}"
+  for SERVICE in ${ENABLED_REMOTE_ACCESS_SERVICES_LIST}
   do
     if echo ${*} | grep -q no_restart_gui
     then
@@ -1076,7 +1453,44 @@ run_custom_scripts() {
   echo -e "${LTBLUE}Running Custom Scripts${NC}"
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
 
+  case ${STEPTHROUGH} in
+    Y)
+      sleep ${STEPTHROUGH_INITIAL_PAUSE}
+    ;;
+  esac
+
   source ${INCLUDE_DIR}/*.sh
+
+  echo
+
+  case ${STEPTHROUGH} in
+    Y)
+      pause_for_stepthrough
+    ;;
+  esac
+}
+
+run_optional_operations() {
+  if echo ${*} | grep -q install-virtualbox
+  then
+    install_virtualbox ${*}
+  fi
+  if echo ${*} | grep -q install-atom_editor
+  then
+    install_atom_editor
+  fi
+  if echo ${*} | grep -q install-teams
+  then
+    install_teams
+  fi
+  if echo ${*} | grep -q install-insync
+  then
+    install_insync
+  fi
+  if echo ${*} | grep -q install-zoom
+  then
+    install_zoom
+  fi
 }
 
 #############################################################################
@@ -1122,7 +1536,9 @@ main() {
   echo -e "${LTBLUE}########################################################################${NC}"
   echo -e "${LTBLUE}                Configuring Machine As a Lab Machine${NC}"
   echo -e "${LTBLUE}                ${NC}"
-  echo -e "${LTBLUE}                Distribution: ${DISTRO_NAME}${NC}"
+  echo -e "${LTBLUE}                Distribution: ${PURPLE} ${DISTRO_NAME}${NC}"
+  echo -e "${LTBLUE}                ${NC}"
+  echo -e "${LTBLUE}                CLI Args: ${PURPLE} ${*}${NC}"
   echo -e "${LTBLUE}########################################################################${NC}"
   echo
   case ${STEPTHROUGH} in
@@ -1131,47 +1547,196 @@ main() {
     ;;
   esac
 
-  if echo ${*} | grep -q base_env-only
+  if echo ${*} | grep -q base_env_only
   then
-    configure_sudo
-    create_default_dirs
-  elif echo ${*} | grep -q packages-only
-  then
-    add_zypper_repos
-    refresh_zypper_repos
-    install_zypper_patterns
-    install_zypper_packages
-    install_custom_remote_zypper_packages
-    remove_zypper_packages
-    install_extra_rpms
-    install_flatpaks
-    install_appimages
-  elif echo ${*} | grep -q tools-only
-  then
-    install_labmachine_scripts
-    install_image_building_tools
-  elif echo ${*} | grep -q libvirt-only
-  then
-    install_modprobe_config
-    configure_libvirt
-  elif echo ${*} | grep -q user_env-only
-  then
-    install_wallpapers
-    install_libreoffice_color_palettes
-    install_user_environment
-    configure_displaymanager
-  else
+  #####################################################
+  #   Base Env Only
+  #####################################################
     # base env
     configure_sudo
     create_default_dirs
     # zypper
-    add_zypper_repos
+    add_zypper_base_repos
     refresh_zypper_repos
-    install_zypper_patterns
-    install_zypper_packages
-    install_custom_remote_zypper_packages
+    install_zypper_base_patterns
+    remove_zypper_patterns
+    install_zypper_base_packages
     remove_zypper_packages
+    # services
+    enable_base_services
+  elif echo ${*} | grep -q base_user_env_only
+  then
+  #####################################################
+  #   Base User Env Only
+  #####################################################
+    # base env
+    configure_sudo
+    create_default_dirs
+    # zypper
+    add_zypper_base_repos
+    refresh_zypper_repos
+    install_zypper_base_patterns
+    remove_zypper_patterns
+    install_zypper_base_packages
+    remove_zypper_packages
+    # user env
+    install_wallpapers
+    install_user_environment
+    configure_displaymanager
+    # services
+    enable_base_services
+  elif echo ${*} | grep -q base_virt_env_only
+  then
+  #####################################################
+  #   Base Virt Env Only
+  #####################################################
+    # base env
+    configure_sudo
+    create_default_dirs
+    # zypper
+    add_zypper_base_repos
+    add_zypper_extra_repos
+    refresh_zypper_repos
+    install_zypper_base_patterns
+    install_zypper_virt_patterns
+    remove_zypper_patterns
+    install_zypper_base_packages
+    install_zypper_remote_access_packages
+    install_zypper_virt_packages
+    remove_zypper_packages
+    # libvirt
+    install_modprobe_config
+    configure_libvirt
+    # tools
+    install_labmachine_scripts
+    # user env
+    install_wallpapers
+    install_user_environment
+    configure_displaymanager
+    # custom scripts
+    run_custom_scripts
+    # services
+    enable_virt_services
+    enable_remote_access_services
+    enable_base_services
+  elif echo ${*} | grep -q base_dev_env_only
+  then
+  #####################################################
+  #   Base Dev Env Only
+  #####################################################
+    # base env
+    configure_sudo
+    create_default_dirs
+    # zypper
+    add_zypper_base_repos
+    add_zypper_extra_repos
+    refresh_zypper_repos
+    install_zypper_base_patterns
+    remove_zypper_patterns
+    install_zypper_base_packages
+    install_zypper_remote_access_packages
+    install_zypper_dev_packages
+    install_custom_remote_zypper_packages
     install_extra_rpms
+    remove_zypper_packages
+    # other packages/apps
+    install_flatpaks
+    install_appimages
+    # tools
+    install_labmachine_scripts
+    install_image_building_tools
+    # optional operations
+    run_optional_operations
+    # user env
+    install_wallpapers
+    install_libreoffice_config
+    install_user_environment
+    configure_displaymanager
+    # custom scripts
+    run_custom_scripts
+    # services
+    enable_remote_access_services
+    enable_base_services
+  elif echo ${*} | grep -q packages_only
+  then
+  #####################################################
+  #   Packages Only
+  #####################################################
+    # zypper
+    add_zypper_base_repos
+    add_zypper_extra_repos
+    refresh_zypper_repos
+    install_zypper_base_patterns
+    install_zypper_virt_patterns
+    remove_zypper_patterns
+    install_zypper_base_packages
+    install_zypper_remote_access_packages
+    install_zypper_virt_packages
+    install_zypper_dev_packages
+    install_custom_remote_zypper_packages
+    install_extra_rpms
+    remove_zypper_packages
+    # other packages/apps
+    install_flatpaks
+    install_appimages
+  elif echo ${*} | grep -q tools_only
+  then
+  #####################################################
+  #   Tools Only
+  #####################################################
+    install_labmachine_scripts
+    install_image_building_tools
+  elif echo ${*} | grep -q libvirt_only
+  then
+  #####################################################
+  #   Libvirt Only
+  #####################################################
+    install_modprobe_config
+    configure_libvirt
+  elif echo ${*} | grep -q user_env_only
+  then
+  #####################################################
+  #   User Env Only
+  #####################################################
+    install_wallpapers
+    install_libreoffice_config
+    install_user_environment
+    configure_displaymanager
+  elif echo ${*} | grep -q custom_only
+  then
+  #####################################################
+  #   Custom Only
+  #####################################################
+    # custom scripts
+    run_custom_scripts
+  elif echo ${*} | grep -q optional_only
+  then
+  #####################################################
+  #   Optional Only
+  #####################################################
+    # optional operations
+    run_optional_operations
+  else
+  #####################################################
+  #   Everything
+  #####################################################
+    # base env
+    configure_sudo
+    create_default_dirs
+    # zypper
+    add_zypper_base_repos
+    add_zypper_extra_repos
+    refresh_zypper_repos
+    install_zypper_base_patterns
+    install_zypper_virt_patterns
+    remove_zypper_patterns
+    install_zypper_base_packages
+    install_zypper_remote_access_packages
+    install_zypper_virt_packages
+    install_zypper_dev_packages
+    install_custom_remote_zypper_packages
+    install_extra_rpms
+    remove_zypper_packages
     # other packages/apps
     install_flatpaks
     install_appimages
@@ -1181,40 +1746,25 @@ main() {
     # tools
     install_labmachine_scripts
     install_image_building_tools
-    if echo ${*} | grep -q install-virtualbox
-    then
-      install_virtualbox ${*}
-    fi
-    if echo ${*} | grep -q install-atom_editor
-    then
-      install_atom_editor
-    fi
-    if echo ${*} | grep -q install-teams
-    then
-      install_teams
-    fi
-    if echo ${*} | grep -q install-insync
-    then
-      install_insync
-    fi
-    if echo ${*} | grep -q install-zoom
-    then
-      install_zoom
-    fi
+    # optional operations
+    run_optional_operations
     # user env
     install_wallpapers
-    install_libreoffice_color_palettes
+    install_libreoffice_config
     install_user_environment
     configure_displaymanager
     # custom scripts
     run_custom_scripts
     # services
-    enable_services
+    enable_virt_services
+    enable_remote_access_services
+    enable_base_services
   fi
 
-  echo "======================================================================"
-  echo "                           Finished"
-  echo "======================================================================"
+  echo
+  echo -e "${LTBLUE}========================================================================${NC}"
+  echo -e "${LTBLUE}                               Finished${NC}"
+  echo -e "${LTBLUE}========================================================================${NC}"
   echo
 }
 

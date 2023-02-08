@@ -30,59 +30,101 @@ One important modification that will most likely need to be made is to edit the 
 
 **CLI Arguments:**
 
-The script can perform many different operations to configure the machine to be a "lab machine", some of which are standard some of which are optional.
+The script can perform many different operations to configure the machine to be a "lab machine" some of which are standard some of which are optional .When running the script you can control what operations are performed by using different arguments. If no arguments are supplied to the script then <u>all standard operations will be performed</u> resulting in a <u>full standard lab machine/course development system</u>. 
 
-When running the script you can control what operations are performed by using different arguments. If no arguments are supplied to the command then all standard operations will be performed. If any one of the standard operation is supplied as an argument only that operation will be performed. Optional operations will only be performed if the argument is supplied on an additional run of the script. Multiple optional operations can be supplied as a space delimited list and each will be performed.
+If you want a subset of the full standard environment you may specify one of the subset base environments as a CLI argument. Only the operations required to install/configure that subset base environment will be performed.
+
+If any one of the standard operations is supplied as an argument only that operation will be performed. 
+
+Optional operations will only be performed if the arguments are supplied without any of the stadalone standard operations or subset base environments (with the exception of optional-only and base_dev_env-only). Multiple optional operations can be supplied as a space delimited list and each will be performed.
+
+The additional arguments can be supplied with any of the subset base, standalone standard or optional operations.
 
 **Example:**
     `configure-as-labmachine.sh [arg] [arg] ...`
 
-<u>**Standard Operations:**</u>
+<u>**Subset Base Environments:**</u>
 
-|<u>Argument</u>    |<u>Description</u>                                                                                                                                 |
-|-------------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
-| **base_env-only** | Configure the base environment (sudo, default directories, wallpapers, LibreOffice color palettes)                                                |
-| **packages-only** | Configure standard software repositories and install packages                                                                                     |
-| **libvirt-only**  | Configure KVM and Libvirt                                                                                                                         |
-| **tools-only**    | Install the labmachine tools into /usr/local/bin/                                                                                                 |
-| **user_env-only** | Configure the user(s') shell and GNOME environment and install user local copies of the standard GNOME Shell extensions (including into /etc/skel)|
+|<u>Argument</u>    |<u>Description</u>    |
+|-------------------|----------------------|
+| **base_env_only** | Configure only the base environment (sudo, default directories, base repos/patterns/packages) |
+| **base_user_env_only** | Configure only the base user environment (sudo, default directories, wallpapers, user environment, base repos/patterns/packages) |
+| **base_virt_env_only** | Configure only the base virtualization environment required to run labs (sudo, default directories, wallpapers, user environment, KVM/Libvirt virtualization, remote access, tools) |
+| **base_dev_env_only** | Configure only the base course development environment (sudo, default directories, wallpapers, user environment, base and extra repos/patterns/packages/flatpaks/appimages, LibreOffice config, remote access, tools (optional operations can also be supplied as additional CLI arguments with this subset base environment) |
+
+<u>**Standalone Standard Operations:**</u>
+
+|<u>Argument</u>    |<u>Description</u>    |
+|-------------------|----------------------|
+| **packages_only** | Configure standard software repositories and install packages along with Flatpaks and AppImages |
+| **libvirt_only**  | Configure KVM and Libvirt |
+| **tools_only**    | Install the labmachine tools into /usr/local/bin/ |
+| **user_env_only** | Configure the user(s') shell and GNOME environment and install user local copies of the standard GNOME Shell extensions (including into /etc/skel)|
+| **custom_only**   | Only run the custom scripts in the hook (include) directory |
+| **optional_only** | Only optional opperations if they are supplied as additional CLI arguments |
 
 <u>**Optional Operations:**</u>
 
-|<u>Argument</u>    |<u>Description</u>                 |
-|-------------------|-----------------------------------|
-| **install-virtualbox** | Install VirtualBox and the VirtualBox extensions  |
-| **install-atom_editor** | Download and install the Atom editor  |
-| **install-teams** | Add Teams repo and install Teams  |
-| **install-insync**| Add Insync repo and install Insync|
-| **install-zoom**  | Download and install Zoom         |
+|<u>Argument</u>    |<u>Description</u> |
+|-------------------|-------------------|
+| **install_virtualbox** | Install VirtualBox and the VirtualBox extensions  |
+| **install_atom_editor** | Download and install the Atom editor  |
+| **install_teams** | Add Teams repo and install Teams  |
+| **install_insync**| Add Insync repo and install Insync |
+| **install_zoom**  | Download and install Zoom |
 
 <u>**Additional Arguments:**</u>
 
 |<u>Argument</u>    |<u>Description</u>                 |
 |-------------------|-----------------------------------|
-| **stepthrough**  | Pause after each operation and wait for the Enter key to be pressed to continue         |
+| **nocolor**  | Disables the colorization of the output |
+| **no_restart_gui**  | Don't restart the display manager when the script finishes |
+| **stepthrough**  | Pause after each operation and wait for the Enter key to be pressed to continue |
 
 
 **Software Repositories:**
 
-**Note**:  This automatically adds the following software repositories:
+There are different sets of software repositories that are added depending on whether you install the full base environment or one of the subset base environments.
+
+The following repositories are added in the full and all subset base environments:
 
   * google-chrome
+
+The following additional repositories are added in the full, base virtualization and base development environments:
+
   * Cloud:Tools
   * X11:RemoteDesktop:x2go
+  * Packman
 
-If you would like to add the **packman** repo, edit the `config/configure-as-labmachine.cfg` file then uncomment and move the packman repo into the `ZYPPER_REPOS_LIST` variable. There are other optional and potentially desirable repos commented out as well listed below that variable. These can be uncommented and moved into the `ZYPPER_REPOS_LIST` variable in the same manner. You may add any additional repos to that variable as well (ensuring that the URL is correct for the distro).
+If you would like to add the additional repos, edit the `config/configure-as-labmachine.cfg` file add them to the `ZYPPER_EXTRA_REPO_LIST` variable. There are optional and potentially desirable repos listed and commented out below that variable. These can be uncommented and moved into the `ZYPPER_EXTRA_REPO_LIST` variable as well. If you add any additional repos to that variable, ensuring that the URL is correct for the distro you are installing on.
 
 **Standard RPM Packages to Install:**
 
-The standard SUSE Training lab machine image is designed to be used to both develop and run course lab environments as well as to develop other aspects of training such as slides, lecture and lab manuals and recordings for eLearning. The default list of packages in ZYPPER_PACKAGE_LIST support all of these activities.
+The full standard SUSE Training lab machine image is designed to be used to both develop and run course lab environments as well as to develop other aspects of training such as slides, lecture and lab manuals and recordings for eLearning. Because subsets of the full base environment can be installed the default list of packages are broken into separate pattern and packages lists.
 
-If desired you can add additional packages to this list as long as they are available in the default repositories or the additional repositories listed in ZYPPER_REPO_LIST. It is also possible to install other custom software (this is discussed below).
+Base System:
+
+  * ZYPPER_BASE_PATTERN_LIST
+  * ZYPPER_BASE_PACKAGE_LIST
+
+Virtualization:
+
+  * ZYPPER_VIRT_PATTERN_LIST
+  * ZYPPER_VIRT_PACKAGE_LIST
+
+Remote Access:
+
+  * ZYPPER_REMOTE_ACCESS_PACKAGE_LIST
+
+Course Development:
+
+  * ZYPPER_DEV_PACKAGE_LIST
+
+If desired you can add additional packages to these lists as long as they are available in the default repositories or the additional repositories listed in ZYPPER_EXTRA_REPO_LIST. It is also possible to install other custom software (this is discussed below).
 
 **Custom RPM Packages to Install:**
 
-If you have additional custom RPM packages you would like installed you have two options: Specify and install them via URL or pre-download them for local install. 
+If you have additional custom RPM packages you would like installed you have two options: Specify them via URL or pre-download them for local install. 
 
 If you want to reference these packages via URL then you need to add them to the CUSTOM_REMOTE_PACKAGE_LIST (space delimited list). Otherwise you can download the RPM package files and place them in the `rpms` directory. The packages will then be installed with zypper after the standard repos/patterns/packages have been added and installed. (I.e. this is a way you could install the virtualbmc command.) In either of these cases the install will pause and you will need to manually accept packages and accept/ignore any signing warnings/errors to continue. 
 
