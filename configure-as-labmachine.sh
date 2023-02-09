@@ -1,6 +1,6 @@
 #!/bin/bash
-# version: 3.0.0
-# date: 2023-02-08
+# version: 3.0.1
+# date: 2023-02-09
 
 CONFIG_DIR="./config"
 INCLUDE_DIR="./include"
@@ -317,7 +317,15 @@ install_zypper_dev_packages() {
     echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper -n --no-refresh install --allow-unsigned-rpm -l ${PACKAGE}${NC}"
     ${SUDO_CMD} zypper -n --no-refresh install --allow-unsigned-rpm -l ${PACKAGE}
   done
-  echo
+
+  if zypper lr | grep -iq packman
+  then
+  echo -e "${LTCYAN}Switching packages to Packman repo${NC}"  
+    local PACKMAN_REPO_NAME="$(zypper lr | grep -i packman | cut -d \| -f 2 | awk '{ print $1 }')"
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper dup -l --allow-vendor-change --from ${PACKMAN_REPO_NAME}${NC}"
+    ${SUDO_CMD} zypper -n dup -l --allow-vendor-change --from ${PACKMAN_REPO_NAME}
+    echo
+  fi
 
   case ${STEPTHROUGH} in
     Y)
