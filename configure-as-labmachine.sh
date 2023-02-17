@@ -1,6 +1,6 @@
 #!/bin/bash
-# version: 3.0.1
-# date: 2023-02-09
+# version: 3.0.2
+# date: 2023-02-11
 
 CONFIG_DIR="./config"
 INCLUDE_DIR="./include"
@@ -514,16 +514,16 @@ install_appimages() {
         echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} mkdir -p ${APPIMAGE_INSTALL_DIR}${NC}"
         ${SUDO_CMD} mkdir -p ${APPIMAGE_INSTALL_DIR}
         echo -e "${PURPLE}  The AppImage system directory is: ${APPIMAGE_INSTALL_DIR}${NC}"
-  
-        echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} cp ${APPIMAGE_SRC_DIR}/*.AppImage ${APPIMAGE_INSTALL_DIR}${NC}"
-        ${SUDO_CMD} cp ${APPIMAGE_SRC_DIR}/*.AppImage ${APPIMAGE_INSTALL_DIR}
-  
-        for USER in ${USER_LIST}
-        do
-          echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD}  systemctl enable --machine=${USER}@.host --user appimaged.service${NC}"
-          ${SUDO_CMD} systemctl enable --machine=${USER}@.host --user appimaged.service
-        done
-      fi
+      fi 
+
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} cp ${APPIMAGE_SRC_DIR}/*.AppImage ${APPIMAGE_INSTALL_DIR}${NC}"
+      ${SUDO_CMD} cp ${APPIMAGE_SRC_DIR}/*.AppImage ${APPIMAGE_INSTALL_DIR}
+
+      for USER in ${USER_LIST}
+      do
+        echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD}  systemctl enable --machine=${USER}@.host --user appimaged.service${NC}"
+        ${SUDO_CMD} systemctl enable --machine=${USER}@.host --user appimaged.service
+      done
     ;;
     *)
       echo -e "${LTCYAN}(appimaged not enabled)${NC}"
@@ -824,6 +824,17 @@ create_default_dirs() {
     ;;
   esac
 
+  echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} mkdir -p /Applications${NC}"
+  ${SUDO_CMD} mkdir -p /Applications
+  echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} mkdir -p /etc/skel/Applications${NC}"
+  ${SUDO_CMD} mkdir -p /etc/skel/Applications
+
+  for USER in ${USER_LIST}
+  do
+    echo -e "${LTGREEN}COMMAND:${NC}  sudo -u ${USER} mkdir -p /home/${USER}/Applications${NC}"
+    sudo -u ${USER} mkdir -p /home/${USER}/Applications
+  done
+
   echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} mkdir -p /install/courses${NC}"
   ${SUDO_CMD} mkdir -p /install/courses
   echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown -R .users /install/courses${NC}"
@@ -1010,6 +1021,13 @@ install_user_environment() {
     ${SUDO_CMD} sh -c 'echo "set noautoindent" >> /etc/skel/.vimrc'
   fi
 
+  ## Bash Aliases
+  #if ! grep -q "alias clear" /etc/skel/.alias
+  #then
+  #  echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} sh -c 'echo \"alias clear='clear;echo;echo;echo'\" >> /etc/skel/.alias'${NC}"
+  #  ${SUDO_CMD} sh -c 'echo "alias clear='clear;echo;echo;echo" >> /etc/skel/.alias'
+  #fi
+
   echo
 
   echo -e "${LTCYAN}/root/:${NC}"
@@ -1059,6 +1077,13 @@ install_user_environment() {
     echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} sh -c \'echo \"set noautoindent\" >> /root/.vimrc\'${NC}"
     ${SUDO_CMD} sh -c 'echo "set noautoindent" >> /root/.vimrc'
   fi
+
+  ## Bash Aliases
+  #if ! grep -q "alias clear" /root/.alias
+  #then
+  #  echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} sh -c 'echo \"alias clear='clear;echo;echo;echo'\" >> /root/.alias'${NC}"
+  #  ${SUDO_CMD} sh -c 'echo "alias clear='clear;echo;echo;echo" >> /root/.alias'
+  #fi
 
   echo
 
@@ -1111,6 +1136,13 @@ install_user_environment() {
       echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} sh -c \"echo set noautoindent >> /home/${USER}/.vimrc\"${NC}"
       ${SUDO_CMD} sh -c "echo set noautoindent >> /home/${USER}/.vimrc"
     fi
+
+    ## Bash Aliases
+    #if ! grep -q "alias clear" /home/${USER}/.alias
+    #then
+    #  echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} sh -c 'echo \"alias clear='clear;echo;echo;echo'\" >> /home/${USER}/.alias'${NC}"
+    #  ${SUDO_CMD} sh -c 'echo "alias clear='clear;echo;echo;echo" >> /home/${USER}/.alias'
+    #fi
 
     echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown -R ${USER}.${USERS_GROUP} /home/${USER}${NC}"
     ${SUDO_CMD} chown -R ${USER}.${USERS_GROUP} /home/${USER}
