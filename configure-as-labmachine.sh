@@ -1,6 +1,6 @@
 #!/bin/bash
-# version: 3.0.2
-# date: 2023-02-11
+# version: 3.1.0
+# date: 2023-02-21
 
 CONFIG_DIR="./config"
 INCLUDE_DIR="./include"
@@ -64,7 +64,7 @@ set_colors() {
 
 usage() {
   echo
-  echo "USAGE: ${1} [base_env_only] [base_virt_env_only] [user_env_only] [packages_only] [tools_only] [libvirt_only] [install_virtualbox] [install_atom_editor] [install_insync] [install_teams] [install_zoom] [no_restart_gui] [nocolor] [stepthrough]"
+  echo "USAGE: ${1} [base_env_only] [base_user_env_only] [base_virt_env_only] [base_dev_env_only] [user_env_only] [packages_only] [tools_only] [libvirt_only] [optional_only] custom_only] [install-virtualbox] [install-atom_editor] [install-insync] [install-teams] [install-zoom] [install-edge] [no_restart_gui] [nocolor] [stepthrough]"
   echo
   exit
 }
@@ -85,24 +85,6 @@ add_zypper_base_repos() {
     ;;
   esac
 
-
-  if ! grep -q "dl.google.com" /etc/zypp/repos.d/*.repo
-  then
-    echo -e "${LTCYAN}google-chrome${NC}"
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper addrepo http://dl.google.com/linux/chrome/rpm/stable/x86_64 google-chrome${NC}"
-    ${SUDO_CMD} zypper addrepo http://dl.google.com/linux/chrome/rpm/stable/x86_64 google-chrome
-    if ! [ -e ${FILES_SRC_DIR}/linux_signing_key.pub ]
-    then
-      echo -e "${LTGREEN}COMMAND:${NC}  cd ${FILES_SRC_DIR}${NC}"
-      cd ${FILES_SRC_DIR}
-      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} wget https://dl.google.com/linux/linux_signing_key.pub${NC}"
-      ${SUDO_CMD} wget https://dl.google.com/linux/linux_signing_key.pub
-      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} rpm --import linux_signing_key.pub${NC}"
-      ${SUDO_CMD} rpm --import linux_signing_key.pub
-      echo -e "${LTGREEN}COMMAND:${NC}  cd -${NC}"
-      cd - > /dev/null
-    fi
-  fi
 
   for REPO in ${ZYPPER_BASE_REPO_LIST}
   do
@@ -162,6 +144,8 @@ add_zypper_extra_repos() {
 }
 
 refresh_zypper_repos() {
+  local ZYPPER_REF_GLOBAL_OPTS="--no-gpg-checks --gpg-auto-import-keys"
+
   echo -e "${LTBLUE}Refreshing zypper repos${NC}"
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
 
@@ -171,8 +155,8 @@ refresh_zypper_repos() {
     ;;
   esac
 
-  echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper --no-gpg-checks --gpg-auto-import-keys ref${NC}"
-  ${SUDO_CMD} zypper --gpg-auto-import-keys ref
+  echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper ${ZYPPER_REF_GLOBAL_OPTS} ref${NC}"
+  ${SUDO_CMD} zypper ${ZYPPER_REF_GLOBAL_OPTS} ref
   echo
 
   case ${STEPTHROUGH} in
@@ -183,6 +167,9 @@ refresh_zypper_repos() {
 }
 
 install_zypper_base_patterns() {
+  local ZYPPER_INSTALL_GLOBAL_OPTS="--non-interactive --no-gpg-checks --no-refresh"
+  local ZYPPER_INSTALL_OPTS="-t pattern"
+
   echo -e "${LTBLUE}Installing base zypper patterns${NC}"
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
 
@@ -194,8 +181,8 @@ install_zypper_base_patterns() {
 
   for PATTERN in ${ZYPPER_BASE_PATTERN_LIST}
   do
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper -n --no-refresh install -t ${PATTERN}${NC}"
-    ${SUDO_CMD} zypper -n --no-refresh install -t pattern ${PATTERN}
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${PATTERN}${NC}"
+    ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${PATTERN}
   done
   echo
 
@@ -207,6 +194,9 @@ install_zypper_base_patterns() {
 }
 
 install_zypper_virt_patterns() {
+  local ZYPPER_INSTALL_GLOBAL_OPTS="--non-interactive --no-gpg-checks --no-refresh"
+  local ZYPPER_INSTALL_OPTS="-t pattern"
+
   echo -e "${LTBLUE}Installing virtualization zypper patterns${NC}"
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
 
@@ -218,8 +208,8 @@ install_zypper_virt_patterns() {
 
   for PATTERN in ${ZYPPER_VIRT_PATTERN_LIST}
   do
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper -n --no-refresh install -t ${PATTERN}${NC}"
-    ${SUDO_CMD} zypper -n --no-refresh install -t pattern ${PATTERN}
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${PATTERN}${NC}"
+    ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${PATTERN}
   done
   echo
 
@@ -231,6 +221,9 @@ install_zypper_virt_patterns() {
 }
 
 install_zypper_base_packages() {
+  local ZYPPER_INSTALL_GLOBAL_OPTS="--non-interactive --no-gpg-checks --no-refresh"
+  local ZYPPER_INSTALL_OPTS="-l --allow-unsigned-rpm"
+
   echo -e "${LTBLUE}Installing zypper base system packages${NC}"
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
 
@@ -242,8 +235,8 @@ install_zypper_base_packages() {
 
   for PACKAGE in ${ZYPPER_BASE_PACKAGE_LIST}
   do
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper -n --no-refresh install --allow-unsigned-rpm -l ${PACKAGE}${NC}"
-    ${SUDO_CMD} zypper -n --no-refresh install --allow-unsigned-rpm -l ${PACKAGE}
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${PACKAGE}${NC}"
+    ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${PACKAGE}
   done
   echo
 
@@ -255,6 +248,9 @@ install_zypper_base_packages() {
 }
 
 install_zypper_virt_packages() {
+  local ZYPPER_INSTALL_GLOBAL_OPTS="--non-interactive --no-gpg-checks --no-refresh"
+  local ZYPPER_INSTALL_OPTS="-l --allow-unsigned-rpm"
+
   echo -e "${LTBLUE}Installing zypper virtualization packages${NC}"
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
 
@@ -266,8 +262,8 @@ install_zypper_virt_packages() {
 
   for PACKAGE in ${ZYPPER_VIRT_PACKAGE_LIST}
   do
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper -n --no-refresh install --allow-unsigned-rpm -l ${PACKAGE}${NC}"
-    ${SUDO_CMD} zypper -n --no-refresh install --allow-unsigned-rpm -l ${PACKAGE}
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${PACKAGE}${NC}"
+    ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${PACKAGE}
   done
   echo
 
@@ -279,6 +275,9 @@ install_zypper_virt_packages() {
 }
 
 install_zypper_remote_access_packages() {
+  local ZYPPER_INSTALL_GLOBAL_OPTS="--non-interactive --no-gpg-checks --no-refresh"
+  local ZYPPER_INSTALL_OPTS="-l --allow-unsigned-rpm"
+
   echo -e "${LTBLUE}Installing zypper remote access packages${NC}"
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
 
@@ -290,8 +289,8 @@ install_zypper_remote_access_packages() {
 
   for PACKAGE in ${ZYPPER_REMOTE_ACCESS_PACKAGE_LIST}
   do
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper -n --no-refresh install --allow-unsigned-rpm -l ${PACKAGE}${NC}"
-    ${SUDO_CMD} zypper -n --no-refresh install --allow-unsigned-rpm -l ${PACKAGE}
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${PACKAGE}${NC}"
+    ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${PACKAGE}
   done
   echo
 
@@ -303,6 +302,9 @@ install_zypper_remote_access_packages() {
 }
 
 install_zypper_dev_packages() {
+  local ZYPPER_INSTALL_GLOBAL_OPTS="--non-interactive --no-gpg-checks --no-refresh"
+  local ZYPPER_INSTALL_OPTS="-l --allow-unsigned-rpm"
+
   echo -e "${LTBLUE}Installing zypper developoment packages${NC}"
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
 
@@ -314,8 +316,8 @@ install_zypper_dev_packages() {
 
   for PACKAGE in ${ZYPPER_DEV_PACKAGE_LIST}
   do
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper -n --no-refresh install --allow-unsigned-rpm -l ${PACKAGE}${NC}"
-    ${SUDO_CMD} zypper -n --no-refresh install --allow-unsigned-rpm -l ${PACKAGE}
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${PACKAGE}${NC}"
+    ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${PACKAGE}
   done
 
   if zypper lr | grep -iq packman
@@ -335,6 +337,9 @@ install_zypper_dev_packages() {
 }
 
 install_custom_remote_zypper_packages() {
+  local ZYPPER_INSTALL_GLOBAL_OPTS="--non-interactive --no-gpg-checks --no-refresh"
+  local ZYPPER_INSTALL_OPTS="-l --allow-unsigned-rpm"
+
   echo -e "${LTBLUE}Installing custom remote zypper packages${NC}"
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
   echo -e "${RED}WARNING: Manual action may be required to accept packages${NC}"
@@ -353,8 +358,8 @@ install_custom_remote_zypper_packages() {
     echo -e "${LTBLUE}----------------------------------------------------${NC}"
     for PACKAGE in ${CUSTOM_REMOTE_PACKAGE_LIST}
     do
-      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper --no-refresh install --allow-unsigned-rpm -l ${PACKAGE}${NC}"
-      ${SUDO_CMD} zypper -n --no-refresh install --allow-unsigned-rpm -l ${PACKAGE}
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${PACKAGE}${NC}"
+      ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${PACKAGE}
     done
     echo
   else
@@ -370,6 +375,9 @@ install_custom_remote_zypper_packages() {
 }
 
 install_extra_rpms() {
+  local ZYPPER_INSTALL_GLOBAL_OPTS="--non-interactive --no-gpg-checks --no-refresh"
+  local ZYPPER_INSTALL_OPTS="-l --allow-unsigned-rpm"
+
   echo -e "${LTBLUE}Installing custom RPM packages${NC}"
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
   echo -e "${RED}WARNING: Manual action may be required to accept packages${NC}"
@@ -386,8 +394,8 @@ install_extra_rpms() {
   then
     #echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} rpm -U ${RPM_SRC_DIR}/*.rpm${NC}"
     #${SUDO_CMD} rpm -U ${RPM_SRC_DIR}/*.rpm
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper --no-refresh install --allow-unsigned-rpm -l ${RPM_SRC_DIR}/*.rpm${NC}"
-    ${SUDO_CMD} zypper --no-refresh install --allow-unsigned-rpm -l ${RPM_SRC_DIR}/*.rpm
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${RPM_SRC_DIR}/*.rpm${NC}"
+    ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${RPM_SRC_DIR}/*.rpm
     echo
   else
     echo -e "${LTCYAN}(No custom RPM packages found)${NC}"
@@ -402,6 +410,9 @@ install_extra_rpms() {
 }
 
 remove_zypper_packages() {
+  local ZYPPER_REMOVE_GLOBAL_OPTS="--non-interactive --no-refresh"
+  local ZYPPER_REMOVE_OPTS="-u"
+
   echo -e "${LTBLUE}Removing zypper packages${NC}"
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
 
@@ -413,8 +424,8 @@ remove_zypper_packages() {
 
   for PACKAGE in ${ZYPPER_REMOVE_PACKAGE_LIST}
   do
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper -n --no-refresh remove -u ${PACKAGE}${NC}"
-    ${SUDO_CMD} zypper -n --no-refresh remove -u ${PACKAGE}
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper ${ZYPPER_REMOVE_GLOBAL_OPTS} remove ${ZYPPER_REMOVE_OPTS} ${PACKAGE}${NC}"
+    ${SUDO_CMD} zypper ${ZYPPER_REMOVE_GLOBAL_OPTS} remove ${ZYPPER_REMOVE_OPTS} ${PACKAGE}
   done
   echo
 
@@ -426,6 +437,9 @@ remove_zypper_packages() {
 }
 
 remove_zypper_patterns() {
+  local ZYPPER_REMOVE_GLOBAL_OPTS="--non-interactive --no-refresh"
+  local ZYPPER_REMOVE_OPTS="-u -t pattern"
+
   echo -e "${LTBLUE}Removing zypper patterns${NC}"
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
 
@@ -437,8 +451,8 @@ remove_zypper_patterns() {
 
   for PATTERN in ${ZYPPER_REMOVE_PATTERN_LIST}
   do
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper -n --no-refresh remove -u -t pattern ${PATTERN}${NC}"
-    ${SUDO_CMD} zypper -n --no-refresh remove -u -t pattern ${PATTERN}
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper ${ZYPPER_REMOVE_GLOBAL_OPTS} remove ${ZYPPER_REMOVE_OPTS} ${PATTERN}${NC}"
+    ${SUDO_CMD} zypper ${ZYPPER_REMOVE_GLOBAL_OPTS} remove ${ZYPPER_REMOVE_OPTS} ${PATTERN}
   done
   echo
 
@@ -1205,7 +1219,61 @@ configure_displaymanager() {
   esac
 }
 
+install_google_chrome() {
+  local CHROME_REPO_NAME="google-chrome"
+  local CHROME_PKG_NAME="google-chrome-stable"
+
+  local ZYPPER_REF_GLOBAL_OPTS="--no-gpg-checks --gpg-auto-import-keys"
+  local ZYPPER_INSTALL_GLOBAL_OPTS="--non-interactive --no-refresh"
+  local ZYPPER_INSTALL_OPTS="-l --allow-unsigned-rpm"
+
+  echo -e "${LTBLUE}Installing Google Chrome${NC}"
+  echo -e "${LTBLUE}----------------------------------------------------${NC}"
+
+  case ${STEPTHROUGH} in
+    Y)
+      sleep ${STEPTHROUGH_INITIAL_PAUSE}
+    ;;
+  esac
+
+
+  if ! grep -q "dl.google.com" /etc/zypp/repos.d/*.repo
+  then
+    echo -e "${LTCYAN}${CHROME_REPO_NAME}${NC}"
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper addrepo http://dl.google.com/linux/chrome/rpm/stable/x86_64 ${CHROME_REPO_NAME}${NC}"
+    ${SUDO_CMD} zypper addrepo http://dl.google.com/linux/chrome/rpm/stable/x86_64 ${CHROME_REPO_NAME}
+    if ! [ -e ${FILES_SRC_DIR}/linux_signing_key.pub ]
+    then
+      echo -e "${LTGREEN}COMMAND:${NC}  cd ${FILES_SRC_DIR}${NC}"
+      cd ${FILES_SRC_DIR}
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} wget https://dl.google.com/linux/linux_signing_key.pub${NC}"
+      ${SUDO_CMD} wget https://dl.google.com/linux/linux_signing_key.pub
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} rpm --import linux_signing_key.pub${NC}"
+      ${SUDO_CMD} rpm --import linux_signing_key.pub
+      echo -e "${LTGREEN}COMMAND:${NC}  cd -${NC}"
+      cd - > /dev/null
+    fi
+  fi
+
+  echo -e "${LTGREEN}COMMAND:${NC} zypper ${ZYPPER_REF_GLOBAL_OPTS} refresh ${CHROME_REPO_NAME}${NC}"
+  ${SUDO_CMD} zypper ${ZYPPER_REF_GLOBAL_OPTS} refresh ${CHROME_REPO_NAME}
+  echo -e "${LTGREEN}COMMAND:${NC} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${CHROME_PKG_NAME}${NC}"
+  ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${CHROME_PKG_NAME}
+ 
+  echo
+
+  case ${STEPTHROUGH} in
+    Y)
+      pause_for_stepthrough
+    ;;
+  esac
+}
+
 install_virtualbox() {
+  local ZYPPER_REF_GLOBAL_OPTS="--no-gpg-checks --gpg-auto-import-keys"
+  local ZYPPER_INSTALL_GLOBAL_OPTS="--non-interactive --no-refresh"
+  local ZYPPER_INSTALL_OPTS="-l --allow-unsigned-rpm"
+
   echo -e "${LTBLUE}Installing Virtualbox${NC}"
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
 
@@ -1218,8 +1286,8 @@ install_virtualbox() {
 
   if ! rpm -qa | grep -q virtualbox
   then
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper -n --no-refresh install -l --allow-unsigned-rpm virtualbox-qt${NC}"
-    ${SUDO_CMD} zypper -n --no-refresh install -l --allow-unsigned-rpm virtualbox-qt
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} virtualbox-qt${NC}"
+    ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} virtualbox-qt
     echo
   fi
 
@@ -1245,6 +1313,10 @@ install_virtualbox() {
 }
 
 install_atom_editor() {
+  local ZYPPER_REF_GLOBAL_OPTS="--no-gpg-checks --gpg-auto-import-keys"
+  local ZYPPER_INSTALL_GLOBAL_OPTS="--non-interactive --no-refresh"
+  local ZYPPER_INSTALL_OPTS="-l --allow-unsigned-rpm"
+
   echo -e "${LTBLUE}Installing the Atom Editor${NC}"
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
 
@@ -1258,14 +1330,14 @@ install_atom_editor() {
   if ! grep -q "packagecloud.io/AtomEditor" /etc/zypp/repos.d/*.repo
   then
     ${SUDO_CMD} sh -c 'echo -e "[Atom]\nname=Atom Editor\nbaseurl=https://packagecloud.io/AtomEditor/atom/el/7/\$basearch\nenabled=1\ntype=rpm-md\ngpgcheck=0\nrepo_gpgcheck=1\ngpgkey=https://packagecloud.io/AtomEditor/atom/gpgkey" > /etc/zypp/repos.d/atom.repo'
-    echo -e "${LTGREEN}COMMAND:${NC} zypper --gpg-auto-import-keys refresh${NC}"
-    ${SUDO_CMD} zypper --gpg-auto-import-keys refresh
+    echo -e "${LTGREEN}COMMAND:${NC} zypper ${ZYPPER_REF_GLOBAL_OPTS} refresh "Atom Editor"${NC}"
+    ${SUDO_CMD} zypper ${ZYPPER_REF_GLOBAL_OPTS} refresh "Atom Editor"
   fi
 
   if zypper se atom | grep -q "A hackable text editor"
   then
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper -n --no-refresh install -l --allow-unsigned-rpm atom${NC}"
-    ${SUDO_CMD} zypper -n --no-refresh install -l --allow-unsigned-rpm atom
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} atom${NC}"
+    ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} atom
   else
     echo -e "${LTGREEN}COMMAND:${NC} cd ${RPM_SRC_DIR}/${NC}"
     cd ${RPM_SRC_DIR}/
@@ -1274,8 +1346,8 @@ install_atom_editor() {
     echo -e "${LTGREEN}COMMAND:${NC} mv ./rpm ./atom.rpm${NC}"
     mv ./rpm ./atom.rpm
     cd -
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper -n --no-refresh install -l --allow-unsigned-rpm ${RPM_SRC_DIR}/atom.rpm${NC}"
-    ${SUDO_CMD} zypper -n --no-refresh install -l --allow-unsigned-rpm ${RPM_SRC_DIR}/atom.rpm
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${RPM_SRC_DIR}/atom.rpm${NC}"
+    ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${RPM_SRC_DIR}/atom.rpm
     echo -e "${LTGREEN}COMMAND:${NC} ${SUDO_CMD} rm -f  ${RPM_SRC_DIR}/atom.rpm${NC}"
     ${SUDO_CMD} rm -f  ${RPM_SRC_DIR}/atom.rpm
   fi
@@ -1324,6 +1396,10 @@ install_atom_editor() {
 }
 
 install_teams() {
+  local ZYPPER_REF_GLOBAL_OPTS="--no-gpg-checks --gpg-auto-import-keys"
+  local ZYPPER_INSTALL_GLOBAL_OPTS="--non-interactive --no-refresh"
+  local ZYPPER_INSTALL_OPTS="-l --allow-unsigned-rpm"
+
   echo -e "${LTBLUE}Installing Microsoft Teams${NC}"
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
 
@@ -1337,14 +1413,14 @@ install_teams() {
   if ! grep -q "packages.microsoft.com/yumrepos/ms-teams" /etc/zypp/repos.d/*.repo
   then
     ${SUDO_CMD} sh -c 'echo -e "[teams]\nname=teams\nenabled=1\nautorefresh=0\nbaseurl=https://packages.microsoft.com/yumrepos/ms-teams\ntype=rpm-md\ngpgkey=https://packages.microsoft.com/keys/microsoft.asc\nkeeppackages=0" > /etc/zypp/repos.d/teams.repo'
-    echo -e "${LTGREEN}COMMAND:${NC} zypper --gpg-auto-import-keys refresh${NC}"
-    ${SUDO_CMD} zypper --gpg-auto-import-keys refresh
+    echo -e "${LTGREEN}COMMAND:${NC} zypper ${ZYPPER_REF_GLOBAL_OPTS} refresh teams${NC}"
+    ${SUDO_CMD} zypper ${ZYPPER_REF_GLOBAL_OPTS} refresh teams
   fi
 
   if zypper se teams | grep -q "Microsoft Teams for Linux is your chat-centered workspace in Office 365"
   then
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper --non-interactive --no-refresh install -l --allow-unsigned-rpm teams${NC}"
-    ${SUDO_CMD} zypper --non-interactive --no-refresh install -l --allow-unsigned-rpm teams
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} teams${NC}"
+    ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} teams
   fi
   echo
 
@@ -1356,6 +1432,10 @@ install_teams() {
 }
 
 install_zoom() {
+  local ZYPPER_REF_GLOBAL_OPTS="--no-gpg-checks --gpg-auto-import-keys"
+  local ZYPPER_INSTALL_GLOBAL_OPTS="--non-interactive --no-refresh"
+  local ZYPPER_INSTALL_OPTS="-l --allow-unsigned-rpm"
+
   echo -e "${LTBLUE}Installing Zoom${NC}"
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
 
@@ -1368,8 +1448,8 @@ install_zoom() {
 
   echo -e "${LTGREEN}COMMAND:${NC} ${SUDO_CMD} rpm --import https://zoom.us/linux/download/pubkey${NC}"
   ${SUDO_CMD} rpm --import https://zoom.us/linux/download/pubkey
-  echo -e "${LTGREEN}COMMAND:${NC} ${SUDO_CMD} zypper --non-interactive --no-refresh install -l --allow-unsigned-rpm https://zoom.us/client/latest/zoom_openSUSE_x86_64.rpm ${NC}"
-  ${SUDO_CMD} zypper --non-interactive --no-refresh install -l --allow-unsigned-rpm https://zoom.us/client/latest/zoom_openSUSE_x86_64.rpm 
+  echo -e "${LTGREEN}COMMAND:${NC} ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} https://zoom.us/client/latest/zoom_openSUSE_x86_64.rpm ${NC}"
+  ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} https://zoom.us/client/latest/zoom_openSUSE_x86_64.rpm 
 
   case ${STEPTHROUGH} in
     Y)
@@ -1379,6 +1459,10 @@ install_zoom() {
 }
 
 install_insync() {
+  local ZYPPER_REF_GLOBAL_OPTS="--no-gpg-checks --gpg-auto-import-keys"
+  local ZYPPER_INSTALL_GLOBAL_OPTS="--non-interactive --no-refresh"
+  local ZYPPER_INSTALL_OPTS="-l --allow-unsigned-rpm"
+
   echo -e "${LTBLUE}Installing Insync${NC}"
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
 
@@ -1391,17 +1475,61 @@ install_insync() {
 
   if ! grep -q "yum.insync.io/fedora/27" /etc/zypp/repos.d/*.repo
   then
+    echo -e "${LTCYAN}insync${NC}"
     echo -e "${LTGREEN}COMMAND:${NC} zypper ar http://yum.insync.io/fedora/27/ insync${NC}"
     ${SUDO_CMD} zypper ar http://yum.insync.io/fedora/27/ insync
-    echo -e "${LTGREEN}COMMAND:${NC} zypper --gpg-auto-import-keys refresh${NC}"
-    ${SUDO_CMD} zypper --gpg-auto-import-keys refresh
+    echo -e "${LTGREEN}COMMAND:${NC} zypper ${ZYPPER_REF_GLOBAL_OPTS} refresh${NC}"
+    ${SUDO_CMD} zypper ${ZYPPER_REF_GLOBAL_OPTS} refresh
   fi
 
   if zypper se insync | grep -q "| insync "
   then
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper --non-interactive --no-refresh install -l --allow-unsigned-rpm insync${NC}"
-    ${SUDO_CMD} zypper --non-interactive --no-refresh install -l --allow-unsigned-rpm insync
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} insync${NC}"
+    ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} insync
   fi 
+  echo
+
+  case ${STEPTHROUGH} in
+    Y)
+      pause_for_stepthrough
+    ;;
+  esac
+}
+
+install_edge() {
+  local EDGE_REPO_NAME="microsoft-edge-beta"
+  local EDGE_PKG_NAME="microsoft-edge-stable"
+
+  local ZYPPER_REF_GLOBAL_OPTS="--no-gpg-checks --gpg-auto-import-keys"
+  local ZYPPER_INSTALL_GLOBAL_OPTS="--non-interactive --no-gpg-checks --no-refresh"
+  local ZYPPER_INSTALL_OPTS="-l --allow-unsigned-rpm"
+
+  echo -e "${LTBLUE}Installing Microsoft Edge${NC}"
+  echo -e "${LTBLUE}----------------------------------------------------${NC}"
+
+  case ${STEPTHROUGH} in
+    Y)
+      sleep ${STEPTHROUGH_INITIAL_PAUSE}
+    ;;
+  esac
+
+
+  if ! grep -q "${EDGE_REPO_NAME}" /etc/zypp/repos.d/*.repo
+  then
+    echo -e "${LTCYAN}${EDGE_REPO_NAME}${NC}"
+    echo -e "${LTGREEN}COMMAND:${NC} rpm --import https://packages.microsoft.com/keys/microsoft.asc${NC}"
+    ${SUDO_CMD} rpm --import https://packages.microsoft.com/keys/microsoft.asc${NC}
+    echo -e "${LTGREEN}COMMAND:${NC} zypper ar https://packages.microsoft.com/yumrepos/edge ${EDGE_REPO_NAME}${NC}"
+    ${SUDO_CMD} zypper ar https://packages.microsoft.com/yumrepos/edge ${EDGE_REPO_NAME}
+    echo -e "${LTGREEN}COMMAND:${NC} zypper ${ZYPPER_REF_GLOBAL_OPTS} refresh ${EDGE_REPO_NAME}${NC}"
+    ${SUDO_CMD} zypper ${ZYPPER_REF_GLOBAL_OPTS} refresh ${EDGE_REPO_NAME}
+  fi
+
+  if zypper se ${EDGE_PKG_NAME} | grep -q "| ${EDGE_PKG_NAME} "
+  then
+    echo -e "${LTGREEN}COMMAND:${NC} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${EDGE_PKG_NAME}${NC}"
+    ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${EDGE_PKG_NAME}
+  fi
   echo
 
   case ${STEPTHROUGH} in
@@ -1511,6 +1639,10 @@ run_custom_scripts() {
 }
 
 run_optional_operations() {
+  #if echo ${*} | grep -q install-chrome
+  #then
+  #  install_google_chrome ${*}
+  #fi
   if echo ${*} | grep -q install-virtualbox
   then
     install_virtualbox ${*}
@@ -1530,6 +1662,10 @@ run_optional_operations() {
   if echo ${*} | grep -q install-zoom
   then
     install_zoom
+  fi
+  if echo ${*} | grep -q install-edge
+  then
+    install_edge
   fi
 }
 
@@ -1573,13 +1709,13 @@ main() {
     
   fi
 
-  echo -e "${LTBLUE}########################################################################${NC}"
+  echo -e "${LTBLUE}###########################################################################################${NC}"
   echo -e "${LTBLUE}                Configuring Machine As a Lab Machine${NC}"
   echo -e "${LTBLUE}                ${NC}"
   echo -e "${LTBLUE}                Distribution: ${PURPLE} ${DISTRO_NAME}${NC}"
   echo -e "${LTBLUE}                ${NC}"
   echo -e "${LTBLUE}                CLI Args: ${PURPLE} ${*}${NC}"
-  echo -e "${LTBLUE}########################################################################${NC}"
+  echo -e "${LTBLUE}###########################################################################################${NC}"
   echo
   case ${STEPTHROUGH} in
     Y)
@@ -1601,6 +1737,7 @@ main() {
     install_zypper_base_patterns
     remove_zypper_patterns
     install_zypper_base_packages
+    install_google_chrome
     remove_zypper_packages
     # services
     enable_base_services
@@ -1618,6 +1755,7 @@ main() {
     install_zypper_base_patterns
     remove_zypper_patterns
     install_zypper_base_packages
+    install_google_chrome
     remove_zypper_packages
     # user env
     install_wallpapers
@@ -1643,6 +1781,7 @@ main() {
     install_zypper_base_packages
     install_zypper_remote_access_packages
     install_zypper_virt_packages
+    install_google_chrome
     remove_zypper_packages
     # libvirt
     install_modprobe_config
@@ -1676,6 +1815,7 @@ main() {
     install_zypper_base_packages
     install_zypper_remote_access_packages
     install_zypper_dev_packages
+    install_google_chrome
     install_custom_remote_zypper_packages
     install_extra_rpms
     remove_zypper_packages
@@ -1686,7 +1826,7 @@ main() {
     install_labmachine_scripts
     install_image_building_tools
     # optional operations
-    run_optional_operations
+    run_optional_operations ${*}
     # user env
     install_wallpapers
     install_libreoffice_config
@@ -1713,12 +1853,15 @@ main() {
     install_zypper_remote_access_packages
     install_zypper_virt_packages
     install_zypper_dev_packages
+    install_google_chrome
     install_custom_remote_zypper_packages
     install_extra_rpms
     remove_zypper_packages
     # other packages/apps
     install_flatpaks
     install_appimages
+    # optional operations
+    run_optional_operations ${*}
   elif echo ${*} | grep -q tools_only
   then
   #####################################################
@@ -1755,7 +1898,7 @@ main() {
   #   Optional Only
   #####################################################
     # optional operations
-    run_optional_operations
+    run_optional_operations ${*}
   else
   #####################################################
   #   Everything
@@ -1774,6 +1917,7 @@ main() {
     install_zypper_remote_access_packages
     install_zypper_virt_packages
     install_zypper_dev_packages
+    install_google_chrome
     install_custom_remote_zypper_packages
     install_extra_rpms
     remove_zypper_packages
@@ -1787,7 +1931,7 @@ main() {
     install_labmachine_scripts
     install_image_building_tools
     # optional operations
-    run_optional_operations
+    run_optional_operations ${*}
     # user env
     install_wallpapers
     install_libreoffice_config
