@@ -1,6 +1,6 @@
 #!/bin/bash
-# version: 3.1.0
-# date: 2023-02-21
+# version: 3.2.0
+# date: 2023-05-17
 
 CONFIG_DIR="./config"
 INCLUDE_DIR="./include"
@@ -11,6 +11,10 @@ normalize_distro_names() {
       DISTRO_TYPE=SLE_
       DISTRO_NAME=SLE_$(echo ${VERSION} | sed 's/-/_/g')
       DISTRO_VERSION=$(echo ${VERSION} | sed 's/-/_/g')
+    ;;
+    opensuse-tumbleweed)
+      DISTRO_NAME=$(echo ${PRETTY_NAME} | sed 's/ /_/g')
+      DISTRO_VERSION=${DISTRO_NAME}
     ;;
     *)
       if echo ${PRETTY_NAME} | grep -iq beta
@@ -597,6 +601,12 @@ configure_sudo() {
     ${SUDO_CMD} sh -c 'echo "%users ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers'
   fi
 
+  if ! ${SUDO_CMD} sh -c 'grep -q "^%users ALL=(ALL) NOPASSWD: ALL" /etc/sudoers.d/users'
+  then
+    echo -e "${LTCYAN}Adding to sudoers.d: ${NC}%users  ALL=(ALL) NOPASSWD: ALL${NC}"
+    ${SUDO_CMD} sh -c 'echo "%users ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/users'
+  fi
+
   if ${SUDO_CMD} sh -c 'grep -q "^Defaults targetpw .*" /etc/sudoers'
   then
     echo -e "${LTCYAN}Updating: ${NC}#Defaults targetpw${NC}"
@@ -1103,6 +1113,12 @@ install_user_environment() {
 
   for USER in ${USER_LIST}
   do
+    if ! groups ${USER} | grep -q ${USERS_GROUP}
+    then
+      echo -e "${LTGREEN}COMMAND:${NC} ${SUDO_CMD} usermod -aG ${USERS_GROUP} ${USER}${NC}"
+      ${SUDO_CMD} usermod -aG ${USERS_GROUP} ${USER}
+    fi
+
     echo -e "${LTCYAN}/home/${USER}/:${NC}"
     echo -e "${LTCYAN}----------------------${NC}"
     # Xsession
