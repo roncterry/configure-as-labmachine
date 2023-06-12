@@ -10,11 +10,11 @@
 
 * Reboot the machine
 
-**openSUSE Leap versions supported:** Leap 15.1/15.2/15.3/15.4
+**openSUSE Leap versions supported:** Leap 15.1/15.2/15.3/15.4/15.5
 
 **SLES/SLED versions supported:** SLE15 SP1/SP2/SP3
 
-The script is 'idempotent' in that the operations it performs will always have the same outcome. This means the script can be rerun safely without having to worry about it breaking something durring additional runs. It also means that future versions can be downloaded and run to "update" the system to the latest configuration of the lab machine image.
+The script is 'idempotent' in that the operations it performs will always have the same outcome. This means the script can be rerun safely without having to worry about it breaking something during additional runs. It also means that future versions can be downloaded and run to "update" the system to the latest configuration of the lab machine image.
 
 **Note:** The standard SUSE Training lab machine image is designed to be used to both develop and run course lab environments as well as to develop other aspects of training such as slides, lecture and lab manuals and recordings for eLearning. The packages installed support all of these activities.
 
@@ -134,13 +134,13 @@ If you have any Flatpaks you wish to install you may add the  remotes (repositor
 
 **AppImages to Install:**
 
-If you have AppImages you wish to install you can place them in the `appimages` directory. If you want to use the AppImage daemon (appimaged) to automatically install the AppImages you must set ENABLE_APPIMAGED=Y. This will cause the `/Applications` directory to be created, the AppImage files in the `appimages` directory to be copied into the `/Applications` directory and the appimaged service to be enabled for each user in USER_LIST (via `systemctl enable --user`). This in turn will cause the AppImages to be installed for the user when they log in and the service starts. 
+If you have AppImages you wish to install you can place them in the `appimages` directory. If you want to use the AppImage daemon (appimaged) to automatically install the AppImages you must set ENABLE_APPIMAGED=Y. This will cause the `/Applications` directory to be created, the AppImage files in the `appimages` directory to be copied into the `/Applications` directory and the appimaged service to be enabled for each user in USER_LIST (via `systemctl enable --user`). This in turn will cause the AppImages to be installed for the user when they log in and the service starts. If the AppImage applications' launchers are not shoing up in SHow Applications, run the following command: `systemctl enable --now --user appimaged.service`
 
 If you don't want to use the AppImage daemon to install the AppImages you can optionally download and install AppImageLauncher (from: https://github.com/TheAssassin/AppImageLauncher/releases) and use it to manually install the AppImages. (This RPM can be installed using the Custom RPM Packages to Install feature discussed above if desired.) In this case the AppImage files will not be automatically copied into the filesystem. To install them you will have to double-click on AppImage files in the `appimages` directory after AppImageLauncher is installed.
 
 **Hook Directory for Custom Commands:**
 
-If you have any custom scripts you would like to run as part of the `configure-lab-machine`. sh script you can put them in the `include` directory and if they have the `.sh` filename extension they will be run at the end of the scripts operations.
+If you have any custom scripts you would like to run as part of the `configure-lab-machine.sh` script you can put them in the `include` directory and if they have the `.sh` filename extension they will be run at the end of the scripts operations.
 
 # Additional Optional Tools:
 
