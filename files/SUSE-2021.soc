@@ -2,11 +2,14 @@
 <ooo:color-table xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" xmlns:draw="urn:oasis:names:tc:opendocument:xmlns:drawing:1.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svg="http://www.w3.org/2000/svg" xmlns:ooo="http://openoffice.org/2004/office">
 <draw:color draw:name="Black" draw:color="#000000"/>
 <draw:color draw:name="White" draw:color="#ffffff"/>
+<draw:color draw:name="Gray" draw:color="#808080"/>
+<draw:color draw:name="Red" draw:color="#ff0000"/>
+<draw:color draw:name="Yellow" draw:color="#ffd320"/>
 <draw:color draw:name="SUSE Pine" draw:color="#0c322c"/>
 <draw:color draw:name="SUSE Jungle" draw:color="#30ba78"/>
 <draw:color draw:name="SUSE Mint" draw:color="#90ebcd"/>
 <draw:color draw:name="SUSE Midnight Blue" draw:color="#192072"/>
 <draw:color draw:name="SUSE Waterhole Blue" draw:color="#2453ff"/>
 <draw:color draw:name="SUSE Persimmon" draw:color="#fe7c3f"/>
-<draw:color draw:name="SUSE Fog-2021" draw:color="#efefef"/>
+<draw:color draw:name="SUSE Fog" draw:color="#efefef"/>
 </ooo:color-table>
