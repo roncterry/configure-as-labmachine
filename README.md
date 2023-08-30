@@ -6,7 +6,7 @@
 
 * Download this project onto the installed openSUSE Leap or SLE 15 system.
 
-* Run the `configure-as-labmachine.sh` script (as root or via sudo) to configure that image to be the standard SUSE Training lab machine image. (It is best to switch to a virtual terminal and run the command. It can be run from a terminal in a GUI though some issues might arise due to the user environment being updated .)
+* Run the `configure-as-labmachine.sh` script (as root or via sudo) to configure that image to be the standard SUSE Training lab machine image. (It is best to switch to a virtual terminal and run the command as root. It can be run from a terminal in a GUI though some issues might arise due to the user environment being updated .)
 
 * Reboot the machine
 
@@ -28,7 +28,7 @@ One important modification that will most likely need to be made is to edit the 
 
 **CLI Arguments:**
 
-The script can perform many different operations to configure the machine to be a "lab machine" some of which are standard some of which are optional .When running the script you can control what operations are performed by using different arguments. If no arguments are supplied to the script then <u>all standard operations will be performed</u> resulting in a <u>full standard lab machine/course development system</u>. 
+The script can perform many different operations to configure the machine to be a "lab machine" some of which are standard some of which are optional. When running the script you can control what operations are performed by using different arguments. If no arguments are supplied to the script then <u>all standard operations will be performed</u> resulting in a <u>full standard lab machine/course development system</u>. 
 
 If you want a subset of the full standard environment you may specify one of the subset base environments as a CLI argument. Only the operations required to install/configure that subset base environment will be performed.
 
@@ -63,14 +63,14 @@ The additional arguments can be supplied with any of the subset base, standalone
 
 <u>**Optional Operations:**</u>
 
-| <u>Argument</u>         | <u>Description</u>                                                                                                              |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| **install-virtualbox**  | Install VirtualBox and the VirtualBox extensions (this implies your agreement with the VirtualBox extensions license agreement) |
-| **install-atom_editor** | Download and install the Atom editor                                                                                            |
-| **install-teams**       | Add Teams repo and install Teams                                                                                                |
-| **install-insync**      | Add Insync repo and install Insync                                                                                              |
-| **install-zoom**        | Download and install Zoom                                                                                                       |
-| **install-edge**        | Add Microsoft Edge repo and install Edge                                                                                        |
+| <u>Argument</u>         | <u>Description</u>                                                                                                                                                               |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **install-virtualbox**  | Install VirtualBox and the VirtualBox extensions (this implies your agreement with the VirtualBox extensions license agreement: https://www.virtualbox.org/wiki/VirtualBox_PUEL) |
+| **install-atom_editor** | Download and install the Atom editor                                                                                                                                             |
+| **install-teams**       | Add Teams repo and install Teams                                                                                                                                                 |
+| **install-insync**      | Add Insync repo and install Insync                                                                                                                                               |
+| **install-zoom**        | Download and install Zoom                                                                                                                                                        |
+| **install-edge**        | Add Microsoft Edge repo and install Edge                                                                                                                                         |
 
 <u>**Additional Arguments:**</u>
 
@@ -91,7 +91,7 @@ The following repositories are added in the full and all subset base environment
 The following additional repositories are added in the full, base virtualization and base development environments:
 
 * Cloud:Tools
-* X11:RemoteDesktop:x2go
+* 
 * Packman
 
 If you would like to add the additional repos, edit the `config/configure-as-labmachine.cfg` file add them to the `ZYPPER_EXTRA_REPO_LIST` variable. There are optional and potentially desirable repos listed and commented out below that variable. These can be uncommented and moved into the `ZYPPER_EXTRA_REPO_LIST` variable as well. If you add any additional repos to that variable, ensuring that the URL is correct for the distro you are installing on.
