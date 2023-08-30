@@ -14,6 +14,8 @@
 
 **SLES/SLED versions supported:** SLE15 SP1/SP2/SP3
 
+**Tumbleweed support:** Tumbleweed is provisionally supported but as it is a rolling distro support for it by this tool may be a bit out of date.
+
 The script is 'idempotent' in that the operations it performs will always have the same outcome. This means the script can be rerun safely without having to worry about it breaking something during additional runs. It also means that future versions can be downloaded and run to "update" the system to the latest configuration of the lab machine image.
 
 **Note:** The standard SUSE Training lab machine image is designed to be used to both develop and run course lab environments as well as to develop other aspects of training such as slides, lecture and lab manuals and recordings for eLearning. The packages installed support all of these activities.
