@@ -4,6 +4,7 @@
 <draw:color draw:name="White" draw:color="#ffffff"/>
 <draw:color draw:name="Gray" draw:color="#808080"/>
 <draw:color draw:name="Red" draw:color="#ff0000"/>
+<draw:color draw:name="Purple" draw:color="#5f224a"/>
 <draw:color draw:name="Yellow" draw:color="#ffd320"/>
 <draw:color draw:name="SUSE Pine" draw:color="#0c322c"/>
 <draw:color draw:name="SUSE Jungle" draw:color="#30ba78"/>
