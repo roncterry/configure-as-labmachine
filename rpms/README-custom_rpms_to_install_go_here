@@ -3,4 +3,4 @@ Custom RPMs you want to install go in this directory.
 Some useful packages to retireve and place here could be:
 
 AppImageLauncher: https://github.com/TheAssassin/AppImageLauncher/releases
-VirtualBMC: https://software.opensuse.org/package/python3-virtualbmc
+VirtualBMC: https://software.opensuse.org/package/python3-virtualbmc (Note: This can also be installed by adding the isv:SUSEInfra:Tools repo (or for Tumbleweed Cloud:OpenStack:Factory repo)) 
