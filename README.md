@@ -6,6 +6,8 @@
 
 * Download this project onto the installed openSUSE Leap or SLE 15 system.
 
+* Edit the config/configure-as-labmachine.cfg file as needed (editing the USER_LIST vairable at minimum to match your user's username)
+
 * Run the `configure-as-labmachine.sh` script (as root or via sudo) to configure that image to be the standard SUSE Training lab machine image. (It is best to switch to a virtual terminal and run the command as root. It can be run from a terminal in a GUI though some issues might arise due to the user environment being updated .)
 
 * Reboot the machine
