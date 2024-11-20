@@ -1,6 +1,6 @@
 #!/bin/bash
-# version: 3.2.0
-# date: 2023-05-17
+# version: 3.3.0
+# date: 2024-11-05
 
 CONFIG_DIR="./config"
 INCLUDE_DIR="./include"
@@ -666,45 +666,51 @@ configure_libvirt() {
     ;;
   esac
 
-
-  # Change to UNIX socket based access and authorization
-  echo -e "${LTCYAN}/etc/libvirt/libvirtd.conf:${NC}"
-  echo -e "${LTCYAN}unix_sock_group = \"libvirt\"${NC}"
-  ${SUDO_CMD} sed -i 's/^#unix_sock_group.*/unix_sock_group = "libvirt"/' /etc/libvirt/libvirtd.conf
-  ${SUDO_CMD} sed -i 's/^unix_sock_group.*/unix_sock_group = "libvirt"/' /etc/libvirt/libvirtd.conf
-
-  echo -e "${LTCYAN}unix_sock_ro_perms = \"0777\"${NC}"
-  ${SUDO_CMD} sed -i 's/^#unix_sock_ro_perms.*/unix_sock_ro_perms = "0777"/' /etc/libvirt/libvirtd.conf
-  ${SUDO_CMD} sed -i 's/^unix_sock_ro_perms.*/unix_sock_ro_perms = "0777"/' /etc/libvirt/libvirtd.conf
-
-  echo -e "${LTCYAN}unix_sock_rw_perms = \"0770\"${NC}"
-  ${SUDO_CMD} sed -i 's/^#unix_sock_rw_perms.*/unix_sock_rw_perms = "0770"/' /etc/libvirt/libvirtd.conf
-  ${SUDO_CMD} sed -i 's/^unix_sock_rw_perms.*/unix_sock_rw_perms = "0770"/' /etc/libvirt/libvirtd.conf
-
-  echo -e "${LTCYAN}unix_sock_admin_perms = \"0700\"${NC}"
-  ${SUDO_CMD} sed -i 's/^#unix_sock_admin_perms.*/unix_sock_admin_perms = "0700"/' /etc/libvirt/libvirtd.conf
-  ${SUDO_CMD} sed -i 's/^unix_sock_admin_perms.*/unix_sock_admin_perms = "0700"/' /etc/libvirt/libvirtd.conf
-
-  echo -e "${LTCYAN}unix_sock_dir = \"/var/run/libvirt\"/${NC}"
-  ${SUDO_CMD} sed -i 's+^#unix_sock_dir.*+unix_sock_dir = "/var/run/libvirt"+' /etc/libvirt/libvirtd.conf
-  ${SUDO_CMD} sed -i 's+^unix_sock_dir.*+unix_sock_dir = "/var/run/libvirt"+' /etc/libvirt/libvirtd.conf
-
-  echo -e "${LTCYAN}auth_unix_ro = \"none\"${NC}"
-  ${SUDO_CMD} sed -i 's/^#auth_unix_ro.*/auth_unix_ro = "none"/' /etc/libvirt/libvirtd.conf
-  ${SUDO_CMD} sed -i 's/^auth_unix_ro.*/auth_unix_ro = "none"/' /etc/libvirt/libvirtd.conf
-
-  echo -e "${LTCYAN}auth_unix_rw = \"none\"${NC}"
-  ${SUDO_CMD} sed -i 's/^#auth_unix_rw.*/auth_unix_rw = "none"/' /etc/libvirt/libvirtd.conf
-  ${SUDO_CMD} sed -i 's/^auth_unix_rw.*/auth_unix_rw = "none"/' /etc/libvirt/libvirtd.conf
-
-  # Enable TCP listening
-  echo -e "${LTCYAN}listen_tcp = 1${NC}"
-  ${SUDO_CMD} sed -i 's/^#listen_tcp.*/listen_tcp = 1/' /etc/libvirt/libvirtd.conf
-  ${SUDO_CMD} sed -i 's/^listen_tcp.*/listen_tcp = 1/' /etc/libvirt/libvirtd.conf
-
-  echo -e "${LTCYAN}auth_tcp = \"none\"${NC}"
-  ${SUDO_CMD} sed -i 's/^#auth_tcp.*/auth_tcp = "none"/' /etc/libvirt/libvirtd.conf
-  ${SUDO_CMD} sed -i 's/^auth_tcp.*/auth_tcp = "none"/' /etc/libvirt/libvirtd.conf
+  for ENABLED_VIRT_SERVICE in ${ENABLED_VIRT_SERVICES_LIST}
+  do
+    ##### Check for and update the Libvirt Daemon config files #####
+    if [ -e /etc/libvirt/${ENABLED_VIRT_SERVICE}.conf ]
+    then
+      # Change to UNIX socket based access and authorization
+      echo -e "${LTCYAN}/etc/libvirt/${ENABLED_VIRT_SERVICE}.conf:${NC}"
+      echo -e "${LTCYAN}unix_sock_group = \"libvirt\"${NC}"
+      ${SUDO_CMD} sed -i 's/^#unix_sock_group.*/unix_sock_group = "libvirt"/' /etc/libvirt/${ENABLED_VIRT_SERVICE}.conf
+      ${SUDO_CMD} sed -i 's/^unix_sock_group.*/unix_sock_group = "libvirt"/' /etc/libvirt/${ENABLED_VIRT_SERVICE}.conf
+  
+      echo -e "${LTCYAN}unix_sock_ro_perms = \"0777\"${NC}"
+      ${SUDO_CMD} sed -i 's/^#unix_sock_ro_perms.*/unix_sock_ro_perms = "0777"/' /etc/libvirt/${ENABLED_VIRT_SERVICE}.conf
+      ${SUDO_CMD} sed -i 's/^unix_sock_ro_perms.*/unix_sock_ro_perms = "0777"/' /etc/libvirt/${ENABLED_VIRT_SERVICE}.conf
+  
+      echo -e "${LTCYAN}unix_sock_rw_perms = \"0770\"${NC}"
+      ${SUDO_CMD} sed -i 's/^#unix_sock_rw_perms.*/unix_sock_rw_perms = "0770"/' /etc/libvirt/${ENABLED_VIRT_SERVICE}.conf
+      ${SUDO_CMD} sed -i 's/^unix_sock_rw_perms.*/unix_sock_rw_perms = "0770"/' /etc/libvirt/${ENABLED_VIRT_SERVICE}.conf
+  
+      echo -e "${LTCYAN}unix_sock_admin_perms = \"0700\"${NC}"
+      ${SUDO_CMD} sed -i 's/^#unix_sock_admin_perms.*/unix_sock_admin_perms = "0700"/' /etc/libvirt/${ENABLED_VIRT_SERVICE}.conf
+      ${SUDO_CMD} sed -i 's/^unix_sock_admin_perms.*/unix_sock_admin_perms = "0700"/' /etc/libvirt/${ENABLED_VIRT_SERVICE}.conf
+  
+      echo -e "${LTCYAN}unix_sock_dir = \"/var/run/libvirt\"/${NC}"
+      ${SUDO_CMD} sed -i 's+^#unix_sock_dir.*+unix_sock_dir = "/var/run/libvirt"+' /etc/libvirt/${ENABLED_VIRT_SERVICE}.conf
+      ${SUDO_CMD} sed -i 's+^unix_sock_dir.*+unix_sock_dir = "/var/run/libvirt"+' /etc/libvirt/${ENABLED_VIRT_SERVICE}.conf
+  
+      echo -e "${LTCYAN}auth_unix_ro = \"none\"${NC}"
+      ${SUDO_CMD} sed -i 's/^#auth_unix_ro.*/auth_unix_ro = "none"/' /etc/libvirt/${ENABLED_VIRT_SERVICE}.conf
+      ${SUDO_CMD} sed -i 's/^auth_unix_ro.*/auth_unix_ro = "none"/' /etc/libvirt/${ENABLED_VIRT_SERVICE}.conf
+  
+      echo -e "${LTCYAN}auth_unix_rw = \"none\"${NC}"
+      ${SUDO_CMD} sed -i 's/^#auth_unix_rw.*/auth_unix_rw = "none"/' /etc/libvirt/${ENABLED_VIRT_SERVICE}.conf
+      ${SUDO_CMD} sed -i 's/^auth_unix_rw.*/auth_unix_rw = "none"/' /etc/libvirt/${ENABLED_VIRT_SERVICE}.conf
+  
+      # Enable TCP listening
+      echo -e "${LTCYAN}listen_tcp = 1${NC}"
+      ${SUDO_CMD} sed -i 's/^#listen_tcp.*/listen_tcp = 1/' /etc/libvirt/${ENABLED_VIRT_SERVICE}.conf
+      ${SUDO_CMD} sed -i 's/^listen_tcp.*/listen_tcp = 1/' /etc/libvirt/${ENABLED_VIRT_SERVICE}.conf
+  
+      echo -e "${LTCYAN}auth_tcp = \"none\"${NC}"
+      ${SUDO_CMD} sed -i 's/^#auth_tcp.*/auth_tcp = "none"/' /etc/libvirt/${ENABLED_VIRT_SERVICE}.conf
+      ${SUDO_CMD} sed -i 's/^auth_tcp.*/auth_tcp = "none"/' /etc/libvirt/${ENABLED_VIRT_SERVICE}.conf
+    fi
+  done
 
   echo
   # Enable open listening in for VNC and Spice
@@ -1581,8 +1587,62 @@ enable_base_services() {
   done
 }
 
-enable_virt_services() {
-  echo -e "${LTBLUE}Enabling/Starting Virtualization Services${NC}"
+disable_not_required_virt_services() {
+  echo -e "${LTBLUE}Disabling/Stopping Non-required Virtualization Services${NC}"
+  echo -e "${LTBLUE}----------------------------------------------------${NC}"
+  for SERVICE in ${DISABLED_VIRT_SERVICES_LIST}
+  do
+    if echo ${*} | grep -q no_restart_gui
+    then
+      if ! echo ${SERVICE} | grep -q display-manager
+      then
+        echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} systemctl stop ${SERVICE}-ro.socket${NC}"
+        ${SUDO_CMD} systemctl stop ${SERVICE}-ro.socket
+        echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} systemctl stop ${SERVICE}-admin.socket${NC}"
+        ${SUDO_CMD} systemctl stop ${SERVICE}-admin.socket
+        echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} systemctl stop ${SERVICE}-tcp.socket${NC}"
+        ${SUDO_CMD} systemctl stop ${SERVICE}-tcp.socket
+        echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} systemctl stop ${SERVICE}-tls.socket${NC}"
+        ${SUDO_CMD} systemctl stop ${SERVICE}-tls.socket
+
+        echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} systemctl disable ${SERVICE}${NC}"
+        ${SUDO_CMD} systemctl disable ${SERVICE}
+        echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} systemctl disable ${SERVICE}-ro.socket${NC}"
+        ${SUDO_CMD} systemctl disable ${SERVICE-ro.socket}-ro.socket
+        echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} systemctl disable ${SERVICE}-admin.socket${NC}"
+        ${SUDO_CMD} systemctl disable ${SERVICE-ro.socket}-admin.socket
+        echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} systemctl disable ${SERVICE}-tcp.socket${NC}"
+        ${SUDO_CMD} systemctl disable ${SERVICE-ro.socket}-tcp.socket
+        echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} systemctl disable ${SERVICE}-tls.socket${NC}"
+        ${SUDO_CMD} systemctl disable ${SERVICE-ro.socket}-tls.socket
+      fi
+    else
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} systemctl stop ${SERVICE}-ro.socket${NC}"
+      ${SUDO_CMD} systemctl stop ${SERVICE}-ro.socket
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} systemctl stop ${SERVICE}-admin.socket${NC}"
+      ${SUDO_CMD} systemctl stop ${SERVICE}-admin.socket
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} systemctl stop ${SERVICE}-tcp.socket${NC}"
+      ${SUDO_CMD} systemctl stop ${SERVICE}-tcp.socket
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} systemctl stop ${SERVICE}-tls.socket${NC}"
+      ${SUDO_CMD} systemctl stop ${SERVICE}-tls.socket
+
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} systemctl disable ${SERVICE}${NC}"
+      ${SUDO_CMD} systemctl disable ${SERVICE}
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} systemctl disable ${SERVICE}-ro.socket${NC}"
+      ${SUDO_CMD} systemctl disable ${SERVICE-ro.socket}-ro.socket
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} systemctl disable ${SERVICE}-admin.socket${NC}"
+      ${SUDO_CMD} systemctl disable ${SERVICE-ro.socket}-admin.socket
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} systemctl disable ${SERVICE}-tcp.socket${NC}"
+      ${SUDO_CMD} systemctl disable ${SERVICE-ro.socket}-tcp.socket
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} systemctl disable ${SERVICE}-tls.socket${NC}"
+      ${SUDO_CMD} systemctl disable ${SERVICE-ro.socket}-tls.socket
+    fi
+   echo
+  done
+}
+
+enable_required_virt_services() {
+  echo -e "${LTBLUE}Enabling/Starting Required Virtualization Services${NC}"
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
   for SERVICE in ${ENABLED_VIRT_SERVICES_LIST}
   do
@@ -1592,16 +1652,28 @@ enable_virt_services() {
       then
         echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} systemctl enable ${SERVICE}${NC}"
         ${SUDO_CMD} systemctl enable ${SERVICE}
+        echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} systemctl enable ${SERVICE}-ro.socket${NC}"
+        ${SUDO_CMD} systemctl enable ${SERVICE-ro.socket}-ro.socket
+        echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} systemctl enable ${SERVICE}-admin.socket${NC}"
+        ${SUDO_CMD} systemctl enable ${SERVICE-ro.socket}-admin.socket
   
-        echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} systemctl restart ${SERVICE}${NC}"
-        ${SUDO_CMD} systemctl restart ${SERVICE}
+        echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} systemctl restart ${SERVICE}-ro.socket${NC}"
+        ${SUDO_CMD} systemctl restart ${SERVICE}-ro.socket
+        echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} systemctl restart ${SERVICE}-admin.socket${NC}"
+        ${SUDO_CMD} systemctl restart ${SERVICE}-admin.socket
       fi
     else
       echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} systemctl enable ${SERVICE}${NC}"
       ${SUDO_CMD} systemctl enable ${SERVICE}
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} systemctl enable ${SERVICE}-ro.socket${NC}"
+      ${SUDO_CMD} systemctl enable ${SERVICE-ro.socket}-ro.socket
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} systemctl enable ${SERVICE}-admin.socket${NC}"
+      ${SUDO_CMD} systemctl enable ${SERVICE-ro.socket}-admin.socket
 
-      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} systemctl restart ${SERVICE}${NC}"
-      ${SUDO_CMD} systemctl restart ${SERVICE}
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} systemctl restart ${SERVICE}-ro.socket${NC}"
+      ${SUDO_CMD} systemctl restart ${SERVICE}-ro.socket
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} systemctl restart ${SERVICE}-admin.socket${NC}"
+      ${SUDO_CMD} systemctl restart ${SERVICE}-admin.socket
     fi
    echo
   done
@@ -1811,7 +1883,8 @@ main() {
     # custom scripts
     run_custom_scripts
     # services
-    enable_virt_services
+    disable_not_required_virt_services
+    enable_required_virt_services
     enable_remote_access_services
     enable_base_services
   elif echo ${*} | grep -q base_dev_env_only
@@ -1956,7 +2029,8 @@ main() {
     # custom scripts
     run_custom_scripts
     # services
-    enable_virt_services
+    disable_not_required_virt_services
+    enable_required_virt_services
     enable_remote_access_services
     enable_base_services
   fi
