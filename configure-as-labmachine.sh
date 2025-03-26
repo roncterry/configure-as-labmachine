@@ -1,6 +1,6 @@
 #!/bin/bash
-# version: 3.3.0
-# date: 2024-11-05
+# version: 3.4.0
+# date: 2025-03-26
 
 CONFIG_DIR="./config"
 INCLUDE_DIR="./include"
@@ -68,7 +68,7 @@ set_colors() {
 
 usage() {
   echo
-  echo "USAGE: ${1} [base_env_only] [base_user_env_only] [base_virt_env_only] [base_dev_env_only] [user_env_only] [packages_only] [tools_only] [libvirt_only] [optional_only] custom_only] [install-virtualbox] [install-atom_editor] [install-insync] [install-teams] [install-zoom] [install-edge] [no_restart_gui] [nocolor] [stepthrough]"
+  echo "USAGE: ${1} [base_env_only] [base_user_env_only] [base_virt_env_only] [base_container_env_only] [base_dev_env_only] [user_env_only] [packages_only] [tools_only] [libvirt_only] [optional_only] custom_only] [install-virtualbox] [install-atom_editor] [install-insync] [install-teams] [install-zoom] [install-edge] [no_restart_gui] [nocolor] [stepthrough]"
   echo
   exit
 }
@@ -185,10 +185,17 @@ install_zypper_base_patterns() {
 
   for PATTERN in ${ZYPPER_BASE_PATTERN_LIST}
   do
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${PATTERN}${NC}"
-    ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${PATTERN}
+    ZYPPER_BASE_PATTERN_INSTALL_LIST="${ZYPPER_BASE_PATTERN_INSTALL_LIST} ${PATTERN}"
+    #echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${PATTERN}${NC}"
+    #${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${PATTERN}
   done
   echo
+
+  if ! [ -z "${ZYPPER_BASE_PATTERN_INSTALL_LIST}" ]
+  then
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${ZYPPER_BASE_PATTERN_INSTALL_LIST}${NC}"
+    ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${ZYPPER_BASE_PATTERN_INSTALL_LIST}
+  fi
 
   case ${STEPTHROUGH} in
     Y)
@@ -212,10 +219,17 @@ install_zypper_virt_patterns() {
 
   for PATTERN in ${ZYPPER_VIRT_PATTERN_LIST}
   do
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${PATTERN}${NC}"
-    ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${PATTERN}
+    ZYPPER_VIRT_PATTERN_INSTALL_LIST="${ZYPPER_VIRT_PATTERN_INSTALL_LIST} ${PATTERN}"
+    #echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${PATTERN}${NC}"
+    #${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${PATTERN}
   done
   echo
+
+  if ! [ -z "${ZYPPER_VIRT_PATTERN_INSTALL_LIST}" ]
+  then
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${ZYPPER_VIRT_PATTERN_INSTALL_LIST}${NC}"
+    ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${ZYPPER_VIRT_PATTERN_INSTALL_LIST}
+  fi
 
   case ${STEPTHROUGH} in
     Y)
@@ -239,10 +253,17 @@ install_zypper_base_packages() {
 
   for PACKAGE in ${ZYPPER_BASE_PACKAGE_LIST}
   do
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${PACKAGE}${NC}"
-    ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${PACKAGE}
+    ZYPPER_BASE_PACKAGE_INSTALL_LIST="${ZYPPER_BASE_PACKAGE_INSTALL_LIST} ${PACKAGE}"
+    #echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${PACKAGE}${NC}"
+    #${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${PACKAGE}
   done
   echo
+
+  if ! [ -z "${ZYPPER_BASE_PACKAGE_INSTALL_LIST}" ]
+  then
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${ZYPPER_BASE_PACKAGE_INSTALL_LIST}${NC}"
+    ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${ZYPPER_BASE_PACKAGE_INSTALL_LIST}
+  fi
 
   case ${STEPTHROUGH} in
     Y)
@@ -266,10 +287,51 @@ install_zypper_virt_packages() {
 
   for PACKAGE in ${ZYPPER_VIRT_PACKAGE_LIST}
   do
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${PACKAGE}${NC}"
-    ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${PACKAGE}
+    ZYPPER_VIRT_PACKAGE_INSTALL_LIST="${ZYPPER_VIRT_PACKAGE_INSTALL_LIST} ${PACKAGE}"
+    #echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${PACKAGE}${NC}"
+    #${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${PACKAGE}
   done
   echo
+
+  if ! [ -z "${ZYPPER_VIRT_PACKAGE_INSTALL_LIST}" ]
+  then
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${ZYPPER_VIRT_PACKAGE_INSTALL_LIST}${NC}"
+    ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${ZYPPER_VIRT_PACKAGE_INSTALL_LIST}
+  fi
+
+  case ${STEPTHROUGH} in
+    Y)
+      pause_for_stepthrough
+    ;;
+  esac
+}
+
+install_zypper_container_packages() {
+  local ZYPPER_INSTALL_GLOBAL_OPTS="--non-interactive --no-gpg-checks --no-refresh"
+  local ZYPPER_INSTALL_OPTS="-l --allow-unsigned-rpm"
+
+  echo -e "${LTBLUE}Installing zypper container packages${NC}"
+  echo -e "${LTBLUE}----------------------------------------------------${NC}"
+
+  case ${STEPTHROUGH} in
+    Y)
+      sleep ${STEPTHROUGH_INITIAL_PAUSE}
+    ;;
+  esac
+
+  for PACKAGE in ${ZYPPER_CONTAINER_PACKAGE_LIST}
+  do
+    ZYPPER_CONTAINER_PACKAGE_INSTALL_LIST="${ZYPPER_CONTAINER_PACKAGE_INSTALL_LIST} ${PACKAGE}"
+    #echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${PACKAGE}${NC}"
+    #${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${PACKAGE}
+  done
+  echo
+
+  if ! [ -z "${ZYPPER_CONTAINER_PACKAGE_INSTALL_LIST}" ]
+  then
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${ZYPPER_CONTAINER_PACKAGE_INSTALL_LIST}${NC}"
+    ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${ZYPPER_CONTAINER_PACKAGE_INSTALL_LIST}
+  fi
 
   case ${STEPTHROUGH} in
     Y)
@@ -293,10 +355,17 @@ install_zypper_remote_access_packages() {
 
   for PACKAGE in ${ZYPPER_REMOTE_ACCESS_PACKAGE_LIST}
   do
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${PACKAGE}${NC}"
-    ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${PACKAGE}
+    ZYPPER_REMOTE_ACCESS_PACKAGE_INSTALL_LIST="${ZYPPER_REMOTE_ACCESS_PACKAGE_INSTALL_LIST} ${PACKAGE}"
+    #echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${PACKAGE}${NC}"
+    #${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${PACKAGE}
   done
   echo
+
+  if ! [ -z "${ZYPPER_REMOTE_ACCESS_PACKAGE_INSTALL_LIST}" ]
+  then
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${ZYPPER_REMOTE_ACCESS_PACKAGE_INSTALL_LIST}${NC}"
+    ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${ZYPPER_REMOTE_ACCESS_PACKAGE_INSTALL_LIST}
+  fi
 
   case ${STEPTHROUGH} in
     Y)
@@ -320,8 +389,9 @@ install_zypper_dev_packages() {
 
   for PACKAGE in ${ZYPPER_DEV_PACKAGE_LIST}
   do
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${PACKAGE}${NC}"
-    ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${PACKAGE}
+    ZYPPER_DEV_PACKAGE_INSTALL_LIST="${ZYPPER_DEV_PACKAGE_INSTALL_LIST} ${PACKAGE}"
+    #echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${PACKAGE}${NC}"
+    #${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${PACKAGE}
   done
 
   if zypper lr | grep -iq packman
@@ -331,6 +401,12 @@ install_zypper_dev_packages() {
     echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper dup -l --allow-vendor-change --from ${PACKMAN_REPO_NAME}${NC}"
     ${SUDO_CMD} zypper -n dup -l --allow-vendor-change --from ${PACKMAN_REPO_NAME}
     echo
+  fi
+
+  if ! [ -z "${ZYPPER_DEV_PACKAGE_INSTALL_LIST}" ]
+  then
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${ZYPPER_DEV_PACKAGE_INSTALL_LIST}${NC}"
+    ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${ZYPPER_DEV_PACKAGE_INSTALL_LIST}
   fi
 
   case ${STEPTHROUGH} in
@@ -356,16 +432,23 @@ install_custom_remote_zypper_packages() {
     ;;
   esac
 
-  if ! [ -z ${CUSTOM_REMOTE_ZYPPER_PACKAGES} ]
+  if ! [ -z "${CUSTOM_REMOTE_ZYPPER_PACKAGES}" ]
   then
     echo -e "${LTBLUE}Installing custom remote zypper packages${NC}"
     echo -e "${LTBLUE}----------------------------------------------------${NC}"
     for PACKAGE in ${CUSTOM_REMOTE_PACKAGE_LIST}
     do
-      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${PACKAGE}${NC}"
-      ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${PACKAGE}
+      CUSTOM_REMOTE_PACKAGE_INSTALL_LIST="${CUSTOM_REMOTE_PACKAGE_INSTALL_LIST} ${PACKAGE}"
+      #echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${PACKAGE}${NC}"
+      #${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${PACKAGE}
     done
     echo
+
+    if ! [ -z "${CUSTOM_REMOTE_PACKAGE_INSTALL_LIST}" ]
+    then
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${CUSTOM_REMOTE_PACKAGE_INSTALL_LIST}${NC}"
+      ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${CUSTOM_REMOTE_PACKAGE_INSTALL_LIST}
+    fi
   else
     echo -e "${LTCYAN}(No custom zypper remote packages found)${NC}"
     echo
@@ -428,10 +511,17 @@ remove_zypper_packages() {
 
   for PACKAGE in ${ZYPPER_REMOVE_PACKAGE_LIST}
   do
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper ${ZYPPER_REMOVE_GLOBAL_OPTS} remove ${ZYPPER_REMOVE_OPTS} ${PACKAGE}${NC}"
-    ${SUDO_CMD} zypper ${ZYPPER_REMOVE_GLOBAL_OPTS} remove ${ZYPPER_REMOVE_OPTS} ${PACKAGE}
+    ZYPPER_PACKAGE_REMOVE_LIST="${ZYPPER_PACKAGE_REMOVE_LIST} ${PACKAGE}"
+    #echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper ${ZYPPER_REMOVE_GLOBAL_OPTS} remove ${ZYPPER_REMOVE_OPTS} ${PACKAGE}${NC}"
+    #${SUDO_CMD} zypper ${ZYPPER_REMOVE_GLOBAL_OPTS} remove ${ZYPPER_REMOVE_OPTS} ${PACKAGE}
   done
   echo
+
+  if ! [ -z "${ZYPPER_PACKAGE_REMOVE_LIST}" ]
+  then
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper ${ZYPPER_REMOVE_GLOBAL_OPTS} remove ${ZYPPER_REMOVE_OPTS} ${ZYPPER_PACKAGE_REMOVE_LIST}${NC}"
+    ${SUDO_CMD} zypper ${ZYPPER_REMOVE_GLOBAL_OPTS} remove ${ZYPPER_REMOVE_OPTS} ${ZYPPER_PACKAGE_REMOVE_LIST}
+  fi
 
   case ${STEPTHROUGH} in
     Y)
@@ -455,10 +545,17 @@ remove_zypper_patterns() {
 
   for PATTERN in ${ZYPPER_REMOVE_PATTERN_LIST}
   do
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper ${ZYPPER_REMOVE_GLOBAL_OPTS} remove ${ZYPPER_REMOVE_OPTS} ${PATTERN}${NC}"
-    ${SUDO_CMD} zypper ${ZYPPER_REMOVE_GLOBAL_OPTS} remove ${ZYPPER_REMOVE_OPTS} ${PATTERN}
+    ZYPPER_PATTERN_REMOVE_LIST="${ZYPPER_PATTERN_REMOVE_LIST} ${PATTERN}"
+    #echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper ${ZYPPER_REMOVE_GLOBAL_OPTS} remove ${ZYPPER_REMOVE_OPTS} ${PATTERN}${NC}"
+    #${SUDO_CMD} zypper ${ZYPPER_REMOVE_GLOBAL_OPTS} remove ${ZYPPER_REMOVE_OPTS} ${PATTERN}
   done
   echo
+
+  if ! [ -z "${ZYPPER_PATTERN_REMOVE_LIST}" ]
+  then
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper ${ZYPPER_REMOVE_GLOBAL_OPTS} remove ${ZYPPER_REMOVE_OPTS} ${ZYPPER_PATTERN_REMOVE_LIST}${NC}"
+    ${SUDO_CMD} zypper ${ZYPPER_REMOVE_GLOBAL_OPTS} remove ${ZYPPER_REMOVE_OPTS} ${ZYPPER_PATTERN_REMOVE_LIST}
+  fi
 
   case ${STEPTHROUGH} in
     Y)
@@ -1115,6 +1212,9 @@ install_user_environment() {
   #  ${SUDO_CMD} sh -c 'echo "alias clear='clear;echo;echo;echo" >> /root/.alias'
   #fi
 
+  ## Add subuids|subgids for running containers with podman and docker
+  ${SUDO_CMD} usermod --add-subuids 100000-165535 --add-subgids 100000-165535 root
+
   echo
 
   for USER in ${USER_LIST}
@@ -1186,6 +1286,9 @@ install_user_environment() {
     #${SUDO_CMD} chown -R ${USER}.${USERS_GROUP} /home/${USER}/.local
     #echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown -R ${USER}.${USERS_GROUP} /home/${USER}/.config${NC}"
     #${SUDO_CMD} chown -R ${USER}.${USERS_GROUP} /home/${USER}/.config
+
+    ## Add subuids|subgids for running containers with podman and docker
+    ${SUDO_CMD} usermod --add-subuids 100000-165535 --add-subgids 100000-165535 ${USER}
 
     echo
 
@@ -1679,6 +1782,20 @@ enable_required_virt_services() {
   done
 }
 
+enable_required_container_services() {
+  echo -e "${LTBLUE}Enabling/Starting Container Services${NC}"
+  echo -e "${LTBLUE}----------------------------------------------------${NC}"
+  for SERVICE in ${ENABLED_CONTAINER_SERVICES_LIST}
+  do
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} systemctl enable ${SERVICE}${NC}"
+    ${SUDO_CMD} systemctl enable ${SERVICE}
+ 
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} systemctl restart ${SERVICE}${NC}"
+    ${SUDO_CMD} systemctl restart ${SERVICE}
+    echo
+  done
+}
+
 enable_remote_access_services() {
   echo -e "${LTBLUE}Enabling/Starting Remote Access Services${NC}"
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
@@ -1887,6 +2004,40 @@ main() {
     enable_required_virt_services
     enable_remote_access_services
     enable_base_services
+  elif echo ${*} | grep -q base_container_env_only
+  then
+  #####################################################
+  #   Base Container Env Only
+  #####################################################
+    # base env
+    configure_sudo
+    create_default_dirs
+    # zypper
+    add_zypper_base_repos
+    add_zypper_extra_repos
+    refresh_zypper_repos
+    install_zypper_base_patterns
+    remove_zypper_patterns
+    install_zypper_base_packages
+    install_zypper_remote_access_packages
+    install_zypper_container_packages
+    install_google_chrome
+    remove_zypper_packages
+    # libvirt
+    install_modprobe_config
+    configure_libvirt
+    # tools
+    install_labmachine_scripts
+    # user env
+    install_wallpapers
+    install_user_environment
+    configure_displaymanager
+    # custom scripts
+    run_custom_scripts
+    # services
+    enable_required_container_services
+    enable_remote_access_services
+    enable_base_services
   elif echo ${*} | grep -q base_dev_env_only
   then
   #####################################################
@@ -1941,6 +2092,7 @@ main() {
     install_zypper_base_packages
     install_zypper_remote_access_packages
     install_zypper_virt_packages
+    install_zypper_container_packages
     install_zypper_dev_packages
     install_google_chrome
     install_custom_remote_zypper_packages
@@ -2005,6 +2157,7 @@ main() {
     install_zypper_base_packages
     install_zypper_remote_access_packages
     install_zypper_virt_packages
+    install_zypper_container_packages
     install_zypper_dev_packages
     install_google_chrome
     install_custom_remote_zypper_packages
@@ -2031,6 +2184,7 @@ main() {
     # services
     disable_not_required_virt_services
     enable_required_virt_services
+    enable_required_container_services
     enable_remote_access_services
     enable_base_services
   fi
