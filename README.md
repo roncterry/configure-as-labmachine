@@ -96,7 +96,6 @@ The following repositories are added in the full and all subset base environment
 The following additional repositories are added in the full, base virtualization and base development environments:
 
 * Cloud:Tools
-* 
 * Packman
 
 If you would like to add the additional repos, edit the `config/configure-as-labmachine.cfg` file add them to the `ZYPPER_EXTRA_REPO_LIST` variable. There are optional and potentially desirable repos listed and commented out below that variable. These can be uncommented and moved into the `ZYPPER_EXTRA_REPO_LIST` variable as well. If you add any additional repos to that variable, ensuring that the URL is correct for the distro you are installing on.
@@ -114,6 +113,11 @@ Virtualization:
 
 * ZYPPER_VIRT_PATTERN_LIST
 * ZYPPER_VIRT_PACKAGE_LIST
+
+Containers:
+
+* ZYPPER_CONTAINER_PATTERN_LIST
+* ZYPPER_CONTAINER_PACKAGE_LIST
 
 Remote Access:
 
