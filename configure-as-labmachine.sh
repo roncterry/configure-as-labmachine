@@ -1,6 +1,6 @@
 #!/bin/bash
-# version: 3.4.0
-# date: 2025-03-26
+# version: 3.5.0
+# date: 2025-12-06
 
 CONFIG_DIR="./config"
 INCLUDE_DIR="./include"
@@ -29,6 +29,7 @@ normalize_distro_names() {
   esac
 }
 
+# NOTE: There is no /usr/etc/os-release
 source /etc/os-release
 normalize_distro_names
 
@@ -692,30 +693,117 @@ configure_sudo() {
     echo
   fi
 
-  if ! ${SUDO_CMD} sh -c 'grep -q "^%users ALL=(ALL) NOPASSWD: ALL" /etc/sudoers'
+  # Check for %wheel auth self or Defaults targetpw
+  if [ -e /usr/etc/sudoers.d ]
   then
-    echo -e "${LTCYAN}Adding: ${NC}%users  ALL=(ALL) NOPASSWD: ALL${NC}"
-    ${SUDO_CMD} sh -c 'echo "%users ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers'
-  fi
+  #------------ Begin: /usr/etc/sudoers.d --------------------------------------
+    # First check for wheel-self-auth
+    if ${SUDO_CMD} sh -c "grep -q \"^Defaults:%wheel !targetpw\" /usr/etc/sudoers.d/*wheel*"
+    then
+      echo "(\"Defaults: %wheel !targetpw\" is already set)"
+    else
+    # Or check for and disable "Defaults targetpw"
+      if ${SUDO_CMD} sh -c "grep -q \"^Defaults targetpw .*\" /usr/etc/sudoers"
+      then
+        echo -e "${LTCYAN}Updating (in /usr/etc/sudoers): ${NC}#Defaults targetpw${NC}"
+        ${SUDO_CMD} sh -c "sed  -i \"s/\(^Defaults targetpw .*\)/\#\1/\" /usr/etc/sudoers"
+      fi
 
-  if ! ${SUDO_CMD} sh -c 'grep -q "^%users ALL=(ALL) NOPASSWD: ALL" /etc/sudoers.d/users'
-  then
-    echo -e "${LTCYAN}Adding to sudoers.d: ${NC}%users  ALL=(ALL) NOPASSWD: ALL${NC}"
-    ${SUDO_CMD} sh -c 'echo "%users ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/users'
-  fi
+    # And then check for and disable "ALL  ALL=(ALL) ALL"
+      if ${SUDO_CMD} sh -c "grep -q \"^ALL .*\" /usr/etc/sudoers"
+      then
+        echo -e "${LTCYAN}Updating (in /usr/etc/sudoers): ${NC}#ALL  ALL=(ALL) ALL${NC}"
+        ${SUDO_CMD} sh -c "sed -i \"s/\(^ALL .*\)/\#\1/\" /usr/etc/sudoers"
+      fi
+    fi
+  #------------ End: /usr/etc/sudoers.d --------------------------------------
+  #------------ Begin: /etc/sudoers.d --------------------------------------
+  else
+    # Check for and disable "Defaults targetpw"
+    if ${SUDO_CMD} sh -c "grep -q \"^Defaults targetpw .*\" /etc/sudoers"
+    then
+      echo -e "${LTCYAN}Updating (in /etc/sudoers): ${NC}#Defaults targetpw${NC}"
+      ${SUDO_CMD} sh -c "sed  -i \"s/\(^Defaults targetpw .*\)/\#\1/\" /etc/sudoers"
+    fi
 
-  if ${SUDO_CMD} sh -c 'grep -q "^Defaults targetpw .*" /etc/sudoers'
-  then
-    echo -e "${LTCYAN}Updating: ${NC}#Defaults targetpw${NC}"
-    ${SUDO_CMD} sh -c 'sed  -i "s/\(^Defaults targetpw .*\)/\#\1/" /etc/sudoers'
+    # And then check for and disable "ALL  ALL=(ALL) ALL"
+    if ${SUDO_CMD} sh -c "grep -q \"^ALL .*\" /etc/sudoers"
+    then
+      echo -e "${LTCYAN}Updating: ${NC}#ALL  ALL=(ALL) ALL${NC}"
+      ${SUDO_CMD} sh -c "sed -i \"s/\(^ALL .*\)/\#\1/\" /etc/sudoers"
+    fi
   fi
+  #------------ End: /etc/sudoers.d --------------------------------------
 
-  if ${SUDO_CMD} sh -c 'grep -q "^ALL .*" /etc/sudoers'
+  # Check for the "sudo no password group"
+  if ! [ -z ${SUDO_NO_PW_GROUP} ]
   then
-    echo -e "${LTCYAN}Updating: ${NC}#ALL  ALL=(ALL) ALL${NC}"
-    ${SUDO_CMD} sh -c 'sed -i "s/\(^ALL .*\)/\#\1/" /etc/sudoers'
+    if [ -e /usr/etc/sudoers.d ]
+    then
+  #------------ Begin: /usr/etc/sudoers.d --------------------------------------
+      if ! ${SUDO_CMD} sh -c "grep -q \"^%${SUDO_NO_PW_GROUP} ALL=(ALL) NOPASSWD: ALL\" /usr/etc/sudoers.d/*"
+      then
+        echo -e "${LTCYAN}Adding (to /usr/etc/sudoers.d/50-sudo-no-pw): ${NC}%${SUDO_NO_PW_GROUP}  ALL=(ALL) NOPASSWD: ALL${NC}"
+        ${SUDO_CMD} sh -c "echo \"%${SUDO_NO_PW_GROUP} ALL=(ALL) NOPASSWD: ALL\" >> /usr/etc/sudoers.d/50-sudo-no-pw"
+      fi
+  #------------ End: /usr/etc/sudoers.d --------------------------------------
+  #------------ Begin: /etc/sudoers.d --------------------------------------
+    elif ! ${SUDO_CMD} sh -c "grep -q \"^%${SUDO_NO_PW_GROUP} ALL=(ALL) NOPASSWD: ALL\" /etc/sudoers.d/*"
+    then
+      echo -e "${LTCYAN}Adding (to /etc/sudoers.d/50-sudo-no-pw): ${NC}%${SUDO_NO_PW_GROUP}  ALL=(ALL) NOPASSWD: ALL${NC}"
+      ${SUDO_CMD} sh -c "echo \"%${SUDO_NO_PW_GROUP} ALL=(ALL) NOPASSWD: ALL\" >> /etc/sudoers.d/50-sudo-no-pw"
+    fi
+  #------------ End: /etc/sudoers.d --------------------------------------
   fi
   echo
+
+  # Check for "ALL  ALL=(ALL) ALL"
+  #if [ -e /usr/etc/sudoers.d ]
+  #then
+  #  if ${SUDO_CMD} sh -c "grep -q \"^ALL .*\" /usr/etc/sudoers"
+  #  then
+  #    echo -e "${LTCYAN}Updating (in /usr/etc/sudoers): ${NC}#ALL  ALL=(ALL) ALL${NC}"
+  #    ${SUDO_CMD} sh -c "sed -i \"s/\(^ALL .*\)/\#\1/\" /usr/etc/sudoers"
+  #  fi
+  #elif ${SUDO_CMD} sh -c "grep -q \"^ALL .*\" /etc/sudoers"
+  #then
+  #  echo -e "${LTCYAN}Updating: ${NC}#ALL  ALL=(ALL) ALL${NC}"
+  #  ${SUDO_CMD} sh -c "sed -i \"s/\(^ALL .*\)/\#\1/\" /etc/sudoers"
+  #fi
+
+  #if ! ${SUDO_CMD} sh -c "grep -q \"^%${USERS_GROUP} ALL=(ALL) NOPASSWD: ALL\" /usr/etc/sudoers"
+  #then
+  #  if ! ${SUDO_CMD} sh -c "grep -q \"^%${USERS_GROUP} ALL=(ALL) NOPASSWD: ALL\" /usr/etc/sudoers.d/*"
+  #  then
+  #    echo -e "${LTCYAN}Adding (to /usr/etc/sudoers): ${NC}%${USERS_GROUP}  ALL=(ALL) NOPASSWD: ALL${NC}"
+  #    ${SUDO_CMD} sh -c "echo \"%${USERS_GROUP} ALL=(ALL) NOPASSWD: ALL\" >> /usr/etc/sudoers"
+  #  fi
+  #elif ! ${SUDO_CMD} sh -c "grep -q \"^%${USERS_GROUP} ALL=(ALL) NOPASSWD: ALL\" /etc/sudoers"
+  #then
+  #  echo -e "${LTCYAN}Adding (to /etc/sudoers): ${NC}%${USERS_GROUP}  ALL=(ALL) NOPASSWD: ALL${NC}"
+  #  ${SUDO_CMD} sh -c "echo \"%${USERS_GROUP} ALL=(ALL) NOPASSWD: ALL\" >> /etc/sudoers"
+  #fi
+
+  #if ! ${SUDO_CMD} sh -c "grep -q \"^%wheel ALL=(ALL) NOPASSWD: ALL\" /usr/etc/sudoers"
+  #then
+  #  echo -e "${LTCYAN}Adding (to /usr/etc/sudoers): ${NC}%wheel  ALL=(ALL) NOPASSWD: ALL${NC}"
+  #  ${SUDO_CMD} sh -c "echo \"%wheel ALL=(ALL) NOPASSWD: ALL\" >> /usr/etc/sudoers"
+  #elif ! ${SUDO_CMD} sh -c "grep -q \"^%wheel ALL=(ALL) NOPASSWD: ALL\" /etc/sudoers"
+  #then
+  #  echo -e "${LTCYAN}Adding (to /etc/sudoers): ${NC}%wheel  ALL=(ALL) NOPASSWD: ALL${NC}"
+  #  ${SUDO_CMD} sh -c \"echo "%wheel ALL=(ALL) NOPASSWD: ALL\" >> /etc/sudoers"
+  #fi
+
+  #if ! ${SUDO_CMD} sh -c "grep -q \"^%users ALL=(ALL) NOPASSWD: ALL\" /usr/etc/sudoers.d/users"
+  #then
+  #  echo -e "${LTCYAN}Adding (to /usr/etc/sudoers.d/users): ${NC}%users  ALL=(ALL) NOPASSWD: ALL${NC}"
+  #  ${SUDO_CMD} sh -c "echo \"%users ALL=(ALL) NOPASSWD: ALL\" > /usr/etc/sudoers.d/users"
+  #elif ! ${SUDO_CMD} sh -c "grep -q \"^%users ALL=(ALL) NOPASSWD: ALL\" /etc/sudoers.d/users"
+  #then
+  #  echo -e "${LTCYAN}Adding (to /etc/sudoers.d/users): ${NC}%users  ALL=(ALL) NOPASSWD: ALL${NC}"
+  #  ${SUDO_CMD} sh -c "echo \"%users ALL=(ALL) NOPASSWD: ALL\" > /etc/sudoers.d/users"
+  #fi
+  #echo
 
   case ${STEPTHROUGH} in
     Y)
@@ -734,6 +822,7 @@ install_modprobe_config() {
     ;;
   esac
 
+  #NOTE: There is no /usr/etc/modprobe.d
   if ! [ -e /etc/modprobe.d/50-kvm.conf ]
   then
     echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/50-kvm.conf /etc/modprobe.d${NC}"
@@ -857,11 +946,22 @@ configure_libvirt() {
 
   if [ -e ${FILES_SRC_DIR}/libvirt.sh ]
   then
-    # Libvirt shell profile
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/libvirt.sh /etc/profile.d/${NC}"
-    ${SUDO_CMD} cp ${FILES_SRC_DIR}/libvirt.sh /etc/profile.d/
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown root.root /etc/profile.d/libvirt.sh${NC}"
-    ${SUDO_CMD} chown root.root /etc/profile.d/libvirt.sh
+    if [ -e /usr/etc/profile.d ]
+    then
+    #------------ Begin: /usr/etc/profile.d --------------------------------------
+      # Libvirt shell profile
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/libvirt.sh /usr/etc/profile.d/${NC}"
+      ${SUDO_CMD} cp ${FILES_SRC_DIR}/libvirt.sh /usr/etc/profile.d/
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown root.root /usr/etc/profile.d/libvirt.sh${NC}"
+      ${SUDO_CMD} chown root.root /usr/etc/profile.d/libvirt.sh
+    #------------ End: /usr/etc/profile.d --------------------------------------
+    else
+      # Libvirt shell profile
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/libvirt.sh /etc/profile.d/${NC}"
+      ${SUDO_CMD} cp ${FILES_SRC_DIR}/libvirt.sh /etc/profile.d/
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown root.root /etc/profile.d/libvirt.sh${NC}"
+      ${SUDO_CMD} chown root.root /etc/profile.d/libvirt.sh
+    fi
  
     echo
   fi
@@ -953,8 +1053,16 @@ create_default_dirs() {
 
   echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} mkdir -p /Applications${NC}"
   ${SUDO_CMD} mkdir -p /Applications
-  echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} mkdir -p /etc/skel/Applications${NC}"
-  ${SUDO_CMD} mkdir -p /etc/skel/Applications
+  if [ -e /usr/etc/skel ]
+  then
+  #------------ Begin: /usr/etc/skel --------------------------------------
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} mkdir -p /usr/etc/skel/Applications${NC}"
+    ${SUDO_CMD} mkdir -p /usr/etc/skel/Applications
+  #------------ End: /usr/etc/skel --------------------------------------
+  else
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} mkdir -p /etc/skel/Applications${NC}"
+    ${SUDO_CMD} mkdir -p /etc/skel/Applications
+  fi
 
   for USER in ${USER_LIST}
   do
@@ -1076,84 +1184,165 @@ install_user_environment() {
     ;;
   esac
 
-
-  echo -e "${LTCYAN}/etc/dconf/:${NC}"
-  echo -e "${LTCYAN}----------------------${NC}"
-  if [ -e ${FILES_SRC_DIR}/dconf_defaults.${DISTRO_NAME}.tgz ]
+  if [ -e /usr/etc/dconf ]
   then
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} tar -C /etc/ -xzf ${FILES_SRC_DIR}/dconf_defaults.${DISTRO_NAME}.tgz${NC}"
-    ${SUDO_CMD} tar -C /etc/ -xzf ${FILES_SRC_DIR}/dconf_defaults.${DISTRO_NAME}.tgz
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} dconf update${NC}"
-    ${SUDO_CMD} dconf update
+  #-------------------- Begin: /usr/etc/ --------------------
+    echo -e "${LTCYAN}/usr/etc/dconf/:${NC}"
+    echo -e "${LTCYAN}----------------------${NC}"
+    if [ -e ${FILES_SRC_DIR}/dconf_defaults.${DISTRO_NAME}.tgz ]
+    then
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} tar -C /usr/etc/ -xzf ${FILES_SRC_DIR}/dconf_defaults.${DISTRO_NAME}.tgz${NC}"
+      ${SUDO_CMD} tar -C /usr/etc/ -xzf ${FILES_SRC_DIR}/dconf_defaults.${DISTRO_NAME}.tgz
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} dconf update${NC}"
+      ${SUDO_CMD} dconf update
+    fi
+  #-------------------- End: /usr/etc/ --------------------
+  else
+    echo -e "${LTCYAN}/etc/dconf/:${NC}"
+    echo -e "${LTCYAN}----------------------${NC}"
+    if [ -e ${FILES_SRC_DIR}/dconf_defaults.${DISTRO_NAME}.tgz ]
+    then
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} tar -C /etc/ -xzf ${FILES_SRC_DIR}/dconf_defaults.${DISTRO_NAME}.tgz${NC}"
+      ${SUDO_CMD} tar -C /etc/ -xzf ${FILES_SRC_DIR}/dconf_defaults.${DISTRO_NAME}.tgz
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} dconf update${NC}"
+      ${SUDO_CMD} dconf update
+    fi
   fi
 
   echo
 
-  echo -e "${LTCYAN}/etc/polkit-default-privs.local${NC}"
-  echo -e "${LTCYAN}----------------------${NC}"
-  #echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} ish -c sed -i 's/org.freedesktop.packagekit.system-sources-refresh.*/org.freedesktop.packagekit.system-sources-refresh               yes:yes:yes/' /etc/polkit-default-privs.standard${NC}"
-  #${SUDO_CMD} sh -c 'sed -i \'s/org.freedesktop.packagekit.system-sources-refresh.*/org.freedesktop.packagekit.system-sources-refresh               yes:yes:yes/\' /etc/polkit-default-privs.standard'
-  echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} \'sh -c echo org.freedesktop.packagekit.system-sources-refresh               yes:yes:yes >> /etc/polkit-default-privs.local\'${NC}"
-  ${SUDO_CMD} sh -c 'echo org.freedesktop.packagekit.system-sources-refresh               yes:yes:yes >> /etc/polkit-default-privs.local'
-  echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} set_polkit_default_privs${NC}"
-  ${SUDO_CMD} set_polkit_default_privs
+  if [ -e /usr/etc/polkit-default-privs.local ]
+  then
+  #-------------------- Begin: /usr/etc/ --------------------
+    echo -e "${LTCYAN}/usr/etc/polkit-default-privs.local${NC}"
+    echo -e "${LTCYAN}----------------------${NC}"
+    #echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} ish -c sed -i 's/org.freedesktop.packagekit.system-sources-refresh.*/org.freedesktop.packagekit.system-sources-refresh               yes:yes:yes/' /usr/etc/polkit-default-privs.standard${NC}"
+    #${SUDO_CMD} sh -c 'sed -i \'s/org.freedesktop.packagekit.system-sources-refresh.*/org.freedesktop.packagekit.system-sources-refresh               yes:yes:yes/\' /usr/etc/polkit-default-privs.standard'
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} \'sh -c echo org.freedesktop.packagekit.system-sources-refresh               yes:yes:yes >> /usr/etc/polkit-default-privs.local\'${NC}"
+    ${SUDO_CMD} sh -c 'echo org.freedesktop.packagekit.system-sources-refresh               yes:yes:yes >> /usr/etc/polkit-default-privs.local'
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} set_polkit_default_privs${NC}"
+    ${SUDO_CMD} set_polkit_default_privs
+  #-------------------- End: /usr/etc/ --------------------
+  else
+    echo -e "${LTCYAN}/etc/polkit-default-privs.local${NC}"
+    echo -e "${LTCYAN}----------------------${NC}"
+    #echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} ish -c sed -i 's/org.freedesktop.packagekit.system-sources-refresh.*/org.freedesktop.packagekit.system-sources-refresh               yes:yes:yes/' /etc/polkit-default-privs.standard${NC}"
+    #${SUDO_CMD} sh -c 'sed -i \'s/org.freedesktop.packagekit.system-sources-refresh.*/org.freedesktop.packagekit.system-sources-refresh               yes:yes:yes/\' /etc/polkit-default-privs.standard'
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} \'sh -c echo org.freedesktop.packagekit.system-sources-refresh               yes:yes:yes >> /etc/polkit-default-privs.local\'${NC}"
+    ${SUDO_CMD} sh -c 'echo org.freedesktop.packagekit.system-sources-refresh               yes:yes:yes >> /etc/polkit-default-privs.local'
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} set_polkit_default_privs${NC}"
+    ${SUDO_CMD} set_polkit_default_privs
+  fi
 
   echo
 
-  echo -e "${LTCYAN}/etc/skel/:${NC}"
-  echo -e "${LTCYAN}----------------------${NC}"
-  # Xsession
-  echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} sh -c 'sed -i /gnome-session/d /etc/skel/.xsession >> /etc/skel/.xsession'${NC}"
-  ${SUDO_CMD} sh -c 'sed -i /gnome-session/d /etc/skel/.xsession >> /etc/skel/.xsession'
-  echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} sh -c \'echo \"gnome-session\" >> /etc/skel/.xsession\'${NC}"
-  ${SUDO_CMD} sh -c 'echo "gnome-session" >> /etc/skel/.xsession'
-
-  # GNOME
-  echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} mkdir -p /etc/skel/.local/share/gnome-shell/extensions${NC}"
-  ${SUDO_CMD} mkdir -p /etc/skel/.local/share/gnome-shell/extensions
-  echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} tar -C /etc/skel/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}/gnome-shell-extensions.${DISTRO_NAME}.tgz${NC}"
-  ${SUDO_CMD} tar -C /etc/skel/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}/gnome-shell-extensions.${DISTRO_NAME}.tgz
-  if ! [ -e /etc/skel/.config ]
+  if [ -e /usr/etc/skel]
   then
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} mkdir -p /etc/skel/.config${NC}"
-    ${SUDO_CMD} mkdir -p /etc/skel/.config
+  #-------------------- Begin: /usr/etc/ --------------------
+    echo -e "${LTCYAN}/usr/etc/skel/:${NC}"
+    echo -e "${LTCYAN}----------------------${NC}"
+    # Xsession
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} sh -c 'sed -i /gnome-session/d /usr/etc/skel/.xsession >> /usr/etc/skel/.xsession'${NC}"
+    ${SUDO_CMD} sh -c 'sed -i /gnome-session/d /usr/etc/skel/.xsession >> /usr/etc/skel/.xsession'
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} sh -c \'echo \"gnome-session\" >> /usr/etc/skel/.xsession\'${NC}"
+    ${SUDO_CMD} sh -c 'echo "gnome-session" >> /usr/etc/skel/.xsession'
+ 
+    # GNOME
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} mkdir -p /usr/etc/skel/.local/share/gnome-shell/extensions${NC}"
+    ${SUDO_CMD} mkdir -p /usr/etc/skel/.local/share/gnome-shell/extensions
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} tar -C /usr/etc/skel/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}/gnome-shell-extensions.${DISTRO_NAME}.tgz${NC}"
+    ${SUDO_CMD} tar -C /usr/etc/skel/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}/gnome-shell-extensions.${DISTRO_NAME}.tgz
+    if ! [ -e /usr/etc/skel/.config ]
+    then
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} mkdir -p /usr/etc/skel/.config${NC}"
+      ${SUDO_CMD} mkdir -p /usr/etc/skel/.config
+    fi
+    if [ -e ${FILES_SRC_DIR}/user.${DISTRO_NAME} ]
+    then
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} mkdir -p /usr/etc/skel/.config/dconf${NC}"
+      ${SUDO_CMD} mkdir -p /usr/etc/skel/.config/dconf
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/user.${DISTRO_NAME} /usr/etc/skel/.config/dconf/user${NC}"
+      ${SUDO_CMD} cp ${FILES_SRC_DIR}/user.${DISTRO_NAME} /usr/etc/skel/.config/dconf/user
+    fi
+    if [ -e ${FILES_SRC_DIR}/dconf_defaults.${DISTRO_NAME}.tgz ]
+    then
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} rm -f /usr/etc/skel/.config/dconf/user${NC}"
+      ${SUDO_CMD} rm -f /usr/etc/skel/.config/dconf/user
+    fi
+  #-------------------- End: /usr/etc/ --------------------
+  else
+    echo -e "${LTCYAN}/etc/skel/:${NC}"
+    echo -e "${LTCYAN}----------------------${NC}"
+    # Xsession
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} sh -c 'sed -i /gnome-session/d /etc/skel/.xsession >> /etc/skel/.xsession'${NC}"
+    ${SUDO_CMD} sh -c 'sed -i /gnome-session/d /etc/skel/.xsession >> /etc/skel/.xsession'
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} sh -c \'echo \"gnome-session\" >> /etc/skel/.xsession\'${NC}"
+    ${SUDO_CMD} sh -c 'echo "gnome-session" >> /etc/skel/.xsession'
+ 
+    # GNOME
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} mkdir -p /etc/skel/.local/share/gnome-shell/extensions${NC}"
+    ${SUDO_CMD} mkdir -p /etc/skel/.local/share/gnome-shell/extensions
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} tar -C /etc/skel/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}/gnome-shell-extensions.${DISTRO_NAME}.tgz${NC}"
+    ${SUDO_CMD} tar -C /etc/skel/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}/gnome-shell-extensions.${DISTRO_NAME}.tgz
+    if ! [ -e /etc/skel/.config ]
+    then
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} mkdir -p /etc/skel/.config${NC}"
+      ${SUDO_CMD} mkdir -p /etc/skel/.config
+    fi
+    if [ -e ${FILES_SRC_DIR}/user.${DISTRO_NAME} ]
+    then
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} mkdir -p /etc/skel/.config/dconf${NC}"
+      ${SUDO_CMD} mkdir -p /etc/skel/.config/dconf
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/user.${DISTRO_NAME} /etc/skel/.config/dconf/user${NC}"
+      ${SUDO_CMD} cp ${FILES_SRC_DIR}/user.${DISTRO_NAME} /etc/skel/.config/dconf/user
+    fi
+    if [ -e ${FILES_SRC_DIR}/dconf_defaults.${DISTRO_NAME}.tgz ]
+    then
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} rm -f /etc/skel/.config/dconf/user${NC}"
+      ${SUDO_CMD} rm -f /etc/skel/.config/dconf/user
+    fi
   fi
-  if [ -e ${FILES_SRC_DIR}/user.${DISTRO_NAME} ]
+
+  if [ -e /usr/etc/skel]
   then
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} mkdir -p /etc/skel/.config/dconf${NC}"
-    ${SUDO_CMD} mkdir -p /etc/skel/.config/dconf
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/user.${DISTRO_NAME} /etc/skel/.config/dconf/user${NC}"
-    ${SUDO_CMD} cp ${FILES_SRC_DIR}/user.${DISTRO_NAME} /etc/skel/.config/dconf/user
+  #-------------------- Begin: /usr/etc/ --------------------
+    # mime
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/mimeapps.list /usr/etc/skel/.config/${NC}"
+    ${SUDO_CMD} cp ${FILES_SRC_DIR}/mimeapps.list /usr/etc/skel/.config/
+ 
+    # Vim
+    if ! grep -q "set noautoindent" /usr/etc/skel/.vimrc
+    then
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} sh -c 'echo \"set noautoindent\" >> /usr/etc/skel/.vimrc'${NC}"
+      ${SUDO_CMD} sh -c 'echo "set noautoindent" >> /usr/etc/skel/.vimrc'
+    fi
+ 
+    ## Bash Aliases
+    #if ! grep -q "alias clear" /usr/etc/skel/.alias
+    #then
+    #  echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} sh -c 'echo \"alias clear='clear;echo;echo;echo'\" >> /usr/etc/skel/.alias'${NC}"
+    #  ${SUDO_CMD} sh -c 'echo "alias clear='clear;echo;echo;echo" >> /usr/etc/skel/.alias'
+    #fi
+  #-------------------- End: /usr/etc/ --------------------
+  else
+    # mime
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/mimeapps.list /etc/skel/.config/${NC}"
+    ${SUDO_CMD} cp ${FILES_SRC_DIR}/mimeapps.list /etc/skel/.config/
+ 
+    # Vim
+    if ! grep -q "set noautoindent" /etc/skel/.vimrc
+    then
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} sh -c 'echo \"set noautoindent\" >> /etc/skel/.vimrc'${NC}"
+      ${SUDO_CMD} sh -c 'echo "set noautoindent" >> /etc/skel/.vimrc'
+    fi
+ 
+    ## Bash Aliases
+    #if ! grep -q "alias clear" /etc/skel/.alias
+    #then
+    #  echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} sh -c 'echo \"alias clear='clear;echo;echo;echo'\" >> /etc/skel/.alias'${NC}"
+    #  ${SUDO_CMD} sh -c 'echo "alias clear='clear;echo;echo;echo" >> /etc/skel/.alias'
+    #fi
   fi
-  if [ -e ${FILES_SRC_DIR}/dconf_defaults.${DISTRO_NAME}.tgz ]
-  then
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} rm -f /etc/skel/.config/dconf/user${NC}"
-    ${SUDO_CMD} rm -f /etc/skel/.config/dconf/user
-  fi
-
-  # XFCE4
-  #echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} tar -C /etc/skel/.config/ -xzf ${FILES_SRC_DIR}/xfce4.tgz${NC}"
-  #${SUDO_CMD} tar -C /etc/skel/.config/ -xzf ${FILES_SRC_DIR}/xfce4.tgz
-  #echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} tar -C /etc/skel/.config/ -xzf ${FILES_SRC_DIR}/Thunar.tgz${NC}"
-  #${SUDO_CMD} tar -C /etc/skel/.config/ -xzf ${FILES_SRC_DIR}/Thunar.tgz
-
-  # mime
-  echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/mimeapps.list /etc/skel/.config/${NC}"
-  ${SUDO_CMD} cp ${FILES_SRC_DIR}/mimeapps.list /etc/skel/.config/
-
-  # Vim
-  if ! grep -q "set noautoindent" /etc/skel/.vimrc
-  then
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} sh -c 'echo \"set noautoindent\" >> /etc/skel/.vimrc'${NC}"
-    ${SUDO_CMD} sh -c 'echo "set noautoindent" >> /etc/skel/.vimrc'
-  fi
-
-  ## Bash Aliases
-  #if ! grep -q "alias clear" /etc/skel/.alias
-  #then
-  #  echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} sh -c 'echo \"alias clear='clear;echo;echo;echo'\" >> /etc/skel/.alias'${NC}"
-  #  ${SUDO_CMD} sh -c 'echo "alias clear='clear;echo;echo;echo" >> /etc/skel/.alias'
-  #fi
 
   echo
 
@@ -1188,12 +1377,6 @@ install_user_environment() {
     ${SUDO_CMD} rm -f /root/.config/dconf/user
   fi
 
-  # XFCE4
-  #echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} tar -C /root/.config/ -xzf ${FILES_SRC_DIR}/xfce4.tgz${NC}"
-  #${SUDO_CMD} tar -C /root/.config/ -xzf ${FILES_SRC_DIR}/xfce4.tgz
-  #echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} tar -C /root/.config/ -xzf ${FILES_SRC_DIR}/Thunar.tgz${NC}"
-  #${SUDO_CMD} tar -C /root/.config/ -xzf ${FILES_SRC_DIR}/Thunar.tgz
-
   # mime
   echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/mimeapps.list /root/.config/${NC}"
   ${SUDO_CMD} cp ${FILES_SRC_DIR}/mimeapps.list /root/.config/
@@ -1216,6 +1399,26 @@ install_user_environment() {
   ${SUDO_CMD} usermod --add-subuids 100000-165535 --add-subgids 100000-165535 root
 
   echo
+
+  if ! [ -z ${SUDO_NO_PW_GROUP} ]
+  then
+    if ! grep -q ${SUDO_NO_PW_GROUP} /etc/group
+    then
+      echo -e "${LTGREEN}COMMAND:${NC} ${SUDO_CMD} groupadd ${SUDO_NO_PW_GROUP}${NC}"
+      ${SUDO_CMD} groupadd ${SUDO_NO_PW_GROUP}
+    fi
+    echo
+  fi
+
+  for SUDO_NO_PW_USER in ${SUDO_NO_PW_USER_LIST}
+  do
+    if ! groups ${SUDO_NO_PW_USER} | grep -q ${SUDO_NO_PW_GROUP}
+    then
+      echo -e "${LTGREEN}COMMAND:${NC} ${SUDO_CMD} usermod -aG ${SUDO_NO_PW_GROUP} ${SUDO_NO_PW_USER}${NC}"
+      ${SUDO_CMD} usermod -aG ${SUDO_NO_PW_GROUP} ${SUDO_NO_PW_USER}
+    fi
+    echo
+  done
 
   for USER in ${USER_LIST}
   do
@@ -1255,12 +1458,6 @@ install_user_environment() {
       echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} rm -f /home/${USER}/.config/dconf/user${NC}"
       ${SUDO_CMD} rm -f /home/${USER}/.config/dconf/user
     fi
-
-    # XFCE4
-    #echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} tar -C /home/${USER}/.config/ -xzf ${FILES_SRC_DIR}/xfce4.tgz${NC}"
-    #${SUDO_CMD} tar -C /home/${USER}/.config/ -xzf ${FILES_SRC_DIR}/xfce4.tgz
-    #echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} tar -C /home/${USER}/.config/ -xzf ${FILES_SRC_DIR}/Thunar.tgz${NC}"
-    #${SUDO_CMD} tar -C /home/${USER}/.config/ -xzf ${FILES_SRC_DIR}/Thunar.tgz
 
     # mime
     echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/mimeapps.list /home/${USER}/.config/${NC}"
@@ -1452,6 +1649,7 @@ install_atom_editor() {
   esac
 
 
+  # NOTE: There is no /user/etc/zypp
   if ! grep -q "packagecloud.io/AtomEditor" /etc/zypp/repos.d/*.repo
   then
     ${SUDO_CMD} sh -c 'echo -e "[Atom]\nname=Atom Editor\nbaseurl=https://packagecloud.io/AtomEditor/atom/el/7/\$basearch\nenabled=1\ntype=rpm-md\ngpgcheck=0\nrepo_gpgcheck=1\ngpgkey=https://packagecloud.io/AtomEditor/atom/gpgkey" > /etc/zypp/repos.d/atom.repo'
@@ -1484,12 +1682,22 @@ install_atom_editor() {
     echo -e "${LTBLUE}Installing the Atom Editor add-on packages${NC}"
     echo -e "${LTBLUE}----------------------------------------------------${NC}"
  
-    echo -e "${LTCYAN}/etc/skel/:${NC}"
-    echo -e "${LTCYAN}----------------------${NC}"
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} mkdir -p /etc/skel/.atom/packages/${NC}"
-    ${SUDO_CMD} mkdir -p /etc/skel/.atom/packages/ -xzf ${FILES_SRC_DIR}/atom-packages/
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} tar -C /etc/skel/.atom/packages/ -xzf ${FILES_SRC_DIR}/atom-packages.tgz${NC}"
-    ${SUDO_CMD} tar -C /etc/skel/.atom/packages/ -xzf ${FILES_SRC_DIR}/atom-packages.tgz
+    if [ -e /usr/etc/skel ]
+    then
+      echo -e "${LTCYAN}/usr/etc/skel/:${NC}"
+      echo -e "${LTCYAN}----------------------${NC}"
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} mkdir -p /usr/etc/skel/.atom/packages/${NC}"
+      ${SUDO_CMD} mkdir -p /usr/etc/skel/.atom/packages/ -xzf ${FILES_SRC_DIR}/atom-packages/
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} tar -C /usr/etc/skel/.atom/packages/ -xzf ${FILES_SRC_DIR}/atom-packages.tgz${NC}"
+      ${SUDO_CMD} tar -C /usr/etc/skel/.atom/packages/ -xzf ${FILES_SRC_DIR}/atom-packages.tgz
+    else
+      echo -e "${LTCYAN}/etc/skel/:${NC}"
+      echo -e "${LTCYAN}----------------------${NC}"
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} mkdir -p /etc/skel/.atom/packages/${NC}"
+      ${SUDO_CMD} mkdir -p /etc/skel/.atom/packages/ -xzf ${FILES_SRC_DIR}/atom-packages/
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} tar -C /etc/skel/.atom/packages/ -xzf ${FILES_SRC_DIR}/atom-packages.tgz${NC}"
+      ${SUDO_CMD} tar -C /etc/skel/.atom/packages/ -xzf ${FILES_SRC_DIR}/atom-packages.tgz
+    fi
  
     echo -e "${LTCYAN}/root/:${NC}"
     echo -e "${LTCYAN}----------------------${NC}"
