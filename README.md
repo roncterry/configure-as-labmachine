@@ -12,9 +12,9 @@
 
 * Reboot the machine
 
-**openSUSE Leap versions supported:** Leap 15.1/15.2/15.3/15.4/15.5/15.6
+**openSUSE Leap versions supported:** Leap 15.1/15.2/15.3/15.4/15.5/15.6/16.0
 
-**SLES/SLED versions supported:** SLE15 SP1-SP7
+**SLES/SLED versions supported:** SLE15 SP1-SP7, SLES 16.0
 
 **Tumbleweed support:** Tumbleweed is provisionally supported but as it is a rolling distro support for it by this tool may be a bit out of date.
 
