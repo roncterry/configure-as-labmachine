@@ -1,6 +1,6 @@
 #!/bin/bash
-# version: 3.5.0
-# date: 2025-12-06
+# version: 3.5.1
+# date: 2025-12-15
 
 CONFIG_DIR="./config"
 INCLUDE_DIR="./include"
@@ -264,6 +264,12 @@ install_zypper_base_packages() {
   then
     echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${ZYPPER_BASE_PACKAGE_INSTALL_LIST}${NC}"
     ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${ZYPPER_BASE_PACKAGE_INSTALL_LIST}
+  fi
+
+  if zypper se | grep -q yast2-control-center
+  then
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} yast2-control-center${NC}"
+    ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} yast2-control-center
   fi
 
   case ${STEPTHROUGH} in
@@ -743,15 +749,15 @@ configure_sudo() {
   #------------ Begin: /usr/etc/sudoers.d --------------------------------------
       if ! ${SUDO_CMD} sh -c "grep -q \"^%${SUDO_NO_PW_GROUP} ALL=(ALL) NOPASSWD: ALL\" /usr/etc/sudoers.d/*"
       then
-        echo -e "${LTCYAN}Adding (to /usr/etc/sudoers.d/50-sudo-no-pw): ${NC}%${SUDO_NO_PW_GROUP}  ALL=(ALL) NOPASSWD: ALL${NC}"
-        ${SUDO_CMD} sh -c "echo \"%${SUDO_NO_PW_GROUP} ALL=(ALL) NOPASSWD: ALL\" >> /usr/etc/sudoers.d/50-sudo-no-pw"
+        echo -e "${LTCYAN}Adding (to /usr/etc/sudoers.d/90-sudo-no-pw): ${NC}%${SUDO_NO_PW_GROUP}  ALL=(ALL) NOPASSWD: ALL${NC}"
+        ${SUDO_CMD} sh -c "echo \"%${SUDO_NO_PW_GROUP} ALL=(ALL) NOPASSWD: ALL\" >> /usr/etc/sudoers.d/90-sudo-no-pw"
       fi
   #------------ End: /usr/etc/sudoers.d --------------------------------------
   #------------ Begin: /etc/sudoers.d --------------------------------------
     elif ! ${SUDO_CMD} sh -c "grep -q \"^%${SUDO_NO_PW_GROUP} ALL=(ALL) NOPASSWD: ALL\" /etc/sudoers.d/*"
     then
-      echo -e "${LTCYAN}Adding (to /etc/sudoers.d/50-sudo-no-pw): ${NC}%${SUDO_NO_PW_GROUP}  ALL=(ALL) NOPASSWD: ALL${NC}"
-      ${SUDO_CMD} sh -c "echo \"%${SUDO_NO_PW_GROUP} ALL=(ALL) NOPASSWD: ALL\" >> /etc/sudoers.d/50-sudo-no-pw"
+      echo -e "${LTCYAN}Adding (to /etc/sudoers.d/90-sudo-no-pw): ${NC}%${SUDO_NO_PW_GROUP}  ALL=(ALL) NOPASSWD: ALL${NC}"
+      ${SUDO_CMD} sh -c "echo \"%${SUDO_NO_PW_GROUP} ALL=(ALL) NOPASSWD: ALL\" >> /etc/sudoers.d/90-sudo-no-pw"
     fi
   #------------ End: /etc/sudoers.d --------------------------------------
   fi
