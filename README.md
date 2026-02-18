@@ -4,7 +4,7 @@
 
 * Perform a default openSUSE Leap or SLES/SLED installation (Use Ext4 rather than Btrfs for the file system with no separate `/home` partition and GNOME instead of KDE for the desktop environment). 
 
-* Download this project onto the installed openSUSE Leap or SLE 15 system.
+* Download this project onto the installed openSUSE Leap or SLE system.
 
 * Edit the config/configure-as-labmachine.cfg file as needed (editing the USER_LIST vairable at minimum to match your user's username)
 
