@@ -1,6 +1,6 @@
 #!/bin/bash
-# version: 3.5.1
-# date: 2025-12-15
+# version: 3.5.2
+# date: 2026-05-22
 
 CONFIG_DIR="./config"
 INCLUDE_DIR="./include"
@@ -2013,8 +2013,22 @@ enable_required_container_services() {
 enable_remote_access_services() {
   echo -e "${LTBLUE}Enabling/Starting Remote Access Services${NC}"
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
+
+
   for SERVICE in ${ENABLED_REMOTE_ACCESS_SERVICES_LIST}
   do
+    case ${SERVICE} in
+      xrdp)
+        if which sestatus > /dev/null
+        then
+          if sestatus | grep "SELinux status" | grep -q enabled
+          then
+            setsebool -P unconfined_service_transition_to_unconfined_user 1
+          fi
+        fi
+      ;;
+    esac
+
     if echo ${*} | grep -q no_restart_gui
     then
       if ! echo ${SERVICE} | grep -q display-manager
