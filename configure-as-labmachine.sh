@@ -1,6 +1,6 @@
 #!/bin/bash
-# version: 3.5.2
-# date: 2026-05-22
+# version: 3.6.0
+# date: 2026-08-05
 
 CONFIG_DIR="./config"
 INCLUDE_DIR="./include"
@@ -833,8 +833,8 @@ install_modprobe_config() {
   then
     echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/50-kvm.conf /etc/modprobe.d${NC}"
     ${SUDO_CMD} cp ${FILES_SRC_DIR}/50-kvm.conf /etc/modprobe.d
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown root.root /etc/modprobe.d/*${NC}"
-    ${SUDO_CMD} chown root.root /etc/modprobe.d/*
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown root:root /etc/modprobe.d/*${NC}"
+    ${SUDO_CMD} chown root:root /etc/modprobe.d/*
     echo
   else
     echo -e "${LTCYAN}(Modprobe configuration found)${NC}"
@@ -958,15 +958,15 @@ configure_libvirt() {
       # Libvirt shell profile
       echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/libvirt.sh /usr/etc/profile.d/${NC}"
       ${SUDO_CMD} cp ${FILES_SRC_DIR}/libvirt.sh /usr/etc/profile.d/
-      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown root.root /usr/etc/profile.d/libvirt.sh${NC}"
-      ${SUDO_CMD} chown root.root /usr/etc/profile.d/libvirt.sh
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown root:root /usr/etc/profile.d/libvirt.sh${NC}"
+      ${SUDO_CMD} chown root:root /usr/etc/profile.d/libvirt.sh
     #------------ End: /usr/etc/profile.d --------------------------------------
     else
       # Libvirt shell profile
       echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/libvirt.sh /etc/profile.d/${NC}"
       ${SUDO_CMD} cp ${FILES_SRC_DIR}/libvirt.sh /etc/profile.d/
-      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown root.root /etc/profile.d/libvirt.sh${NC}"
-      ${SUDO_CMD} chown root.root /etc/profile.d/libvirt.sh
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown root:root /etc/profile.d/libvirt.sh${NC}"
+      ${SUDO_CMD} chown root:root /etc/profile.d/libvirt.sh
     fi
  
     echo
@@ -994,8 +994,8 @@ install_labmachine_scripts() {
     echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} tar -C / -xzf ${FILES_SRC_DIR}/labmachine_scripts.tgz ${NC}"
     ${SUDO_CMD} tar -C / -xzf ${FILES_SRC_DIR}/labmachine_scripts.tgz 
  
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown root.root /usr/local/bin/*.sh${NC}"
-    ${SUDO_CMD} chown root.root /usr/local/bin/*.sh
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown root:root /usr/local/bin/*.sh${NC}"
+    ${SUDO_CMD} chown root:root /usr/local/bin/*.sh
  
     echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chmod +rx /usr/local/bin/*.sh${NC}"
     ${SUDO_CMD} chmod +rx /usr/local/bin/*.sh
@@ -1028,8 +1028,8 @@ install_image_building_tools() {
     echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} tar -C /opt -xzf ${FILES_SRC_DIR}/image_building.tgz ${NC}"
     ${SUDO_CMD} tar -C /opt -xzf ${FILES_SRC_DIR}/image_building.tgz 
  
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown root.root /opt/image_building${NC}"
-    ${SUDO_CMD} chown root.root /opt/image_building
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown root:root /opt/image_building${NC}"
+    ${SUDO_CMD} chown root:root /opt/image_building
  
     echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chmod +rx /opt/image_building/*.sh${NC}"
     ${SUDO_CMD} chmod +rx /opt/image_building/*.sh
@@ -1078,29 +1078,29 @@ create_default_dirs() {
 
   echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} mkdir -p /install/courses${NC}"
   ${SUDO_CMD} mkdir -p /install/courses
-  echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown -R .users /install/courses${NC}"
-  ${SUDO_CMD} chown -R .users /install/courses
+  echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown -R :users /install/courses${NC}"
+  ${SUDO_CMD} chown -R :users /install/courses
   echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chmod -R 2777 /install/courses${NC}"
   ${SUDO_CMD} chmod -R 2777 /install/courses
 
   echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} mkdir -p /install/courses_shared${NC}"
   ${SUDO_CMD} mkdir -p /install/courses_shared
-  echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown -R .users /install/courses_shared${NC}"
-  ${SUDO_CMD} chown -R .users /install/courses_shared
+  echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown -R :users /install/courses_shared${NC}"
+  ${SUDO_CMD} chown -R :users /install/courses_shared
   echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chmod -R 2777 /install/courses_shared${NC}"
   ${SUDO_CMD} chmod -R 2777 /install/courses_shared
 
   echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} mkdir -p /home/VMs${NC}"
   ${SUDO_CMD} mkdir -p /home/VMs
-  echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown -R .users /home/VMs${NC}"
-  ${SUDO_CMD} chown -R .users /home/VMs
+  echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown -R :users /home/VMs${NC}"
+  ${SUDO_CMD} chown -R :users /home/VMs
   echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chmod -R 2777 /home/VMs${NC}"
   ${SUDO_CMD} chmod -R 2777 /home/VMs
 
   echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} mkdir -p /home/iso${NC}"
   ${SUDO_CMD} mkdir -p /home/iso
-  echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown -R .users /home/iso${NC}"
-  ${SUDO_CMD} chown -R .users /home/iso
+  echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown -R :users /home/iso${NC}"
+  ${SUDO_CMD} chown -R :users /home/iso
   echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chmod -R 2777 /home/iso${NC}"
   ${SUDO_CMD} chmod -R 2777 /home/iso
   echo
@@ -1127,14 +1127,14 @@ install_wallpapers() {
     echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} tar -C /usr/share -xzf ${FILES_SRC_DIR}/wallpapers.tgz ${NC}"
     ${SUDO_CMD} tar -C /usr/share -xzf ${FILES_SRC_DIR}/wallpapers.tgz 
  
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown root.root /usr/share/wallpapers/*.png${NC}"
-    ${SUDO_CMD} chown root.root /usr/share/wallpapers/*.png
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown root:root /usr/share/wallpapers/*.png${NC}"
+    ${SUDO_CMD} chown root:root /usr/share/wallpapers/*.png
  
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown root.root /usr/share/wallpapers/*.jpg${NC}"
-    ${SUDO_CMD} chown root.root /usr/share/wallpapers/*.jpg
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown root:root /usr/share/wallpapers/*.jpg${NC}"
+    ${SUDO_CMD} chown root:root /usr/share/wallpapers/*.jpg
  
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown root.root /usr/share/gnome-background-properties/*.xml${NC}"
-    ${SUDO_CMD} chown root.root /usr/share/gnome-background-properties/*.xml
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown root:root /usr/share/gnome-background-properties/*.xml${NC}"
+    ${SUDO_CMD} chown root:root /usr/share/gnome-background-properties/*.xml
  
     echo
   else
@@ -1164,8 +1164,8 @@ install_libreoffice_config() {
     echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/*.soc /usr/lib64/libreoffice/share/palette/ ${NC}"
     ${SUDO_CMD} cp ${FILES_SRC_DIR}/*.soc /usr/lib64/libreoffice/share/palette/
  
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown root.root /usr/lib64/libreoffice/share/palette/*${NC}"
-    ${SUDO_CMD} chown root.root /usr/lib64/libreoffice/share/palette/*
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown root:root /usr/lib64/libreoffice/share/palette/*${NC}"
+    ${SUDO_CMD} chown root:root /usr/lib64/libreoffice/share/palette/*
  
     echo
   else
@@ -1189,6 +1189,25 @@ install_user_environment() {
       sleep ${STEPTHROUGH_INITIAL_PAUSE}
     ;;
   esac
+  
+  ##################### GLOBAL: ssh ###################################
+
+  if [ -e /usr/etc/ssh ]
+  then
+  #-------------------- Begin: /usr/etc/ --------------------
+    echo -e "${LTCYAN}/usr/etc/ssh/:${NC}"
+    echo -e "${LTCYAN}----------------------${NC}"
+    echo "ServerAliveInterval 60" > /usr/etc/ssh/90-serveraliveinterval.conf
+  #-------------------- End: /usr/etc/ --------------------
+  else
+    echo -e "${LTCYAN}/etc/ssh/:${NC}"
+    echo -e "${LTCYAN}----------------------${NC}"
+    echo "ServerAliveInterval 60" > /etc/ssh/90-serveraliveinterval.conf
+  fi
+
+  echo
+
+  ##################### GLOBAL: dconf ###################################
 
   if [ -e /usr/etc/dconf ]
   then
@@ -1217,6 +1236,8 @@ install_user_environment() {
 
   echo
 
+  ##################### GLOBAL: polkit ###################################
+
   if [ -e /usr/etc/polkit-default-privs.local ]
   then
   #-------------------- Begin: /usr/etc/ --------------------
@@ -1242,7 +1263,9 @@ install_user_environment() {
 
   echo
 
-  if [ -e /usr/etc/skel]
+  ##################### USER: skeleton user ###################################
+
+  if [ -e /usr/etc/skel ]
   then
   #-------------------- Begin: /usr/etc/ --------------------
     echo -e "${LTCYAN}/usr/etc/skel/:${NC}"
@@ -1309,7 +1332,7 @@ install_user_environment() {
     fi
   fi
 
-  if [ -e /usr/etc/skel]
+  if [ -e /usr/etc/skel ]
   then
   #-------------------- Begin: /usr/etc/ --------------------
     # mime
@@ -1351,6 +1374,8 @@ install_user_environment() {
   fi
 
   echo
+
+  ##################### USER: root user ###################################
 
   echo -e "${LTCYAN}/root/:${NC}"
   echo -e "${LTCYAN}----------------------${NC}"
@@ -1426,6 +1451,8 @@ install_user_environment() {
     echo
   done
 
+  ##################### USER: users in ${USER_LIST} ###################################
+
   for USER in ${USER_LIST}
   do
     if ! groups ${USER} | grep -q ${USERS_GROUP}
@@ -1483,12 +1510,12 @@ install_user_environment() {
     #  ${SUDO_CMD} sh -c 'echo "alias clear='clear;echo;echo;echo" >> /home/${USER}/.alias'
     #fi
 
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown -R ${USER}.${USERS_GROUP} /home/${USER}${NC}"
-    ${SUDO_CMD} chown -R ${USER}.${USERS_GROUP} /home/${USER}
-    #echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown -R ${USER}.${USERS_GROUP} /home/${USER}/.local${NC}"
-    #${SUDO_CMD} chown -R ${USER}.${USERS_GROUP} /home/${USER}/.local
-    #echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown -R ${USER}.${USERS_GROUP} /home/${USER}/.config${NC}"
-    #${SUDO_CMD} chown -R ${USER}.${USERS_GROUP} /home/${USER}/.config
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown -R ${USER}:${USERS_GROUP} /home/${USER}${NC}"
+    ${SUDO_CMD} chown -R ${USER}:${USERS_GROUP} /home/${USER}
+    #echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown -R ${USER}:${USERS_GROUP} /home/${USER}/.local${NC}"
+    #${SUDO_CMD} chown -R ${USER}:${USERS_GROUP} /home/${USER}/.local
+    #echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown -R ${USER}:${USERS_GROUP} /home/${USER}/.config${NC}"
+    #${SUDO_CMD} chown -R ${USER}:${USERS_GROUP} /home/${USER}/.config
 
     ## Add subuids|subgids for running containers with podman and docker
     ${SUDO_CMD} usermod --add-subuids 100000-165535 --add-subgids 100000-165535 ${USER}
@@ -1545,6 +1572,49 @@ configure_displaymanager() {
       pause_for_stepthrough
     ;;
   esac
+}
+
+install_cockpit() {
+  echo -e "${LTBLUE}Installing Cockpit${NC}"
+  echo -e "${LTBLUE}----------------------------------------------------${NC}"
+
+  case ${STEPTHROUGH} in
+    Y)
+      sleep ${STEPTHROUGH_INITIAL_PAUSE}
+    ;;
+  esac
+
+  if grep VERSION /etc/os-release | grep -q 15
+  then
+    local INSTALL_COCKPIT_PATTERN=N
+  else
+    local INSTALL_COCKPIT_PATTERN=Y
+  fi
+
+  case ${INSTALL_COCKPIT_PATTERN} in
+    Y)
+      for COCKPIT_PATTERN in ${ZYPPER_COCKPIT_PATTERN_LIST}
+      do
+        echo -e "${LTGREEN}COMMAND:${NC} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${ZYPPER_COCKPIT_PATTERN_LIST}${NC}"
+        ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${ZYPPER_COCKPIT_PATTERN_LIST}
+      done
+    ;;
+    *)
+      for COCKPIT_PKG in ${ZYPPER_COCKPIT_PACKAGE_LIST}
+      do
+        echo -e "${LTGREEN}COMMAND:${NC} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${COCKPIT_PKG}${NC}"
+        ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${COCKPIT_PKG}
+      done
+    ;;
+  esac
+  echo
+
+  case ${STEPTHROUGH} in
+    Y)
+      pause_for_stepthrough
+    ;;
+  esac
+
 }
 
 install_google_chrome() {
@@ -1721,8 +1791,8 @@ install_atom_editor() {
       echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} tar -C /home/${USER}/.atom/packages/ -xzf ${FILES_SRC_DIR}/atom-packages.tgz${NC}"
       ${SUDO_CMD} tar -C /home/${USER}/.atom/packages/ -xzf ${FILES_SRC_DIR}/atom-packages.tgz
 
-      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown -R ${USER}.${USERS_GROUP} /home/${USER}${NC}"
-      ${SUDO_CMD} chown -R ${USER}.${USERS_GROUP} /home/${USER}thoughs
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown -R ${USER}:${USERS_GROUP} /home/${USER}${NC}"
+      ${SUDO_CMD} chown -R ${USER}:${USERS_GROUP} /home/${USER}thoughs
       done
   fi
   echo
@@ -2021,9 +2091,9 @@ enable_remote_access_services() {
       xrdp)
         if which sestatus > /dev/null
         then
-          if sestatus | grep "SELinux status" | grep -q enabled
+          if ${SUDO_CMD} sestatus | grep "SELinux status" | grep -q enabled
           then
-            setsebool -P unconfined_service_transition_to_unconfined_user 1
+            ${SUDO_CMD} setsebool -P unconfined_service_transition_to_unconfined_user 1
           fi
         fi
       ;;
@@ -2170,6 +2240,7 @@ main() {
     install_zypper_base_patterns
     remove_zypper_patterns
     install_zypper_base_packages
+    install_cockpit
     install_google_chrome
     remove_zypper_packages
     # services
@@ -2188,6 +2259,7 @@ main() {
     install_zypper_base_patterns
     remove_zypper_patterns
     install_zypper_base_packages
+    install_cockpit
     install_google_chrome
     remove_zypper_packages
     # user env
@@ -2214,6 +2286,7 @@ main() {
     install_zypper_base_packages
     install_zypper_remote_access_packages
     install_zypper_virt_packages
+    install_cockpit
     install_google_chrome
     remove_zypper_packages
     # libvirt
@@ -2249,6 +2322,7 @@ main() {
     install_zypper_base_packages
     install_zypper_remote_access_packages
     install_zypper_container_packages
+    install_cockpit
     install_google_chrome
     remove_zypper_packages
     # libvirt
@@ -2283,6 +2357,7 @@ main() {
     install_zypper_base_packages
     install_zypper_remote_access_packages
     install_zypper_dev_packages
+    install_cockpit
     install_google_chrome
     install_custom_remote_zypper_packages
     install_extra_rpms
@@ -2322,6 +2397,7 @@ main() {
     install_zypper_virt_packages
     install_zypper_container_packages
     install_zypper_dev_packages
+    install_cockpit
     install_google_chrome
     install_custom_remote_zypper_packages
     install_extra_rpms
@@ -2387,6 +2463,7 @@ main() {
     install_zypper_virt_packages
     install_zypper_container_packages
     install_zypper_dev_packages
+    install_cockpit
     install_google_chrome
     install_custom_remote_zypper_packages
     install_extra_rpms
