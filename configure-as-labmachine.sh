@@ -1,5 +1,5 @@
 #!/bin/bash
-# version: 3.6.3
+# version: 3.6.4
 # date: 2026-08-06
 
 CONFIG_DIR="./config"
@@ -2220,7 +2220,7 @@ main() {
     STEPTHROUGH="Y"
   fi
 
-  if which sudo > /dev/null
+  if sudo -V > /dev/null
   then
     if [ "$(whoami)" = root ]
     then
