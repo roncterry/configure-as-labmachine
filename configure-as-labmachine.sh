@@ -1,5 +1,5 @@
 #!/bin/bash
-# version: 3.6.1
+# version: 3.6.2
 # date: 2026-08-06
 
 CONFIG_DIR="./config"
@@ -1582,6 +1582,8 @@ configure_displaymanager() {
 }
 
 install_cockpit() {
+  local ZYPPER_INSTALL_GLOBAL_OPTS="--non-interactive --no-gpg-checks --no-refresh"
+
   echo -e "${LTBLUE}Installing Cockpit${NC}"
   echo -e "${LTBLUE}----------------------------------------------------${NC}"
 
@@ -1597,12 +1599,14 @@ install_cockpit() {
     local INSTALL_COCKPIT_PATTERN=N
   else
     local INSTALL_COCKPIT_PATTERN=Y
+    local ZYPPER_INSTALL_OPTS="-t pattern"
   fi
 
   # NOTE: A better way but can take too long due to repo refresh
   #if zypper --no-refresh se -t pattern | grep -q cockpit
   #then
   #  local INSTALL_COCKPIT_PATTERN=Y
+  #  local ZYPPER_INSTALL_OPTS="-t pattern"
   #else
   #  local INSTALL_COCKPIT_PATTERN=N
   #fi
