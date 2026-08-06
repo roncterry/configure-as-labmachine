@@ -1263,6 +1263,28 @@ install_user_environment() {
 
   echo
 
+  ##################### GLOBAL: sudo no password ###################################
+
+  if ! [ -z ${SUDO_NO_PW_GROUP} ]
+  then
+    if ! grep -q ${SUDO_NO_PW_GROUP} /etc/group
+    then
+      echo -e "${LTGREEN}COMMAND:${NC} ${SUDO_CMD} groupadd ${SUDO_NO_PW_GROUP}${NC}"
+      ${SUDO_CMD} groupadd ${SUDO_NO_PW_GROUP}
+    fi
+    echo
+  fi
+
+  for SUDO_NO_PW_USER in ${SUDO_NO_PW_USER_LIST}
+  do
+    if ! groups ${SUDO_NO_PW_USER} | grep -q ${SUDO_NO_PW_GROUP}
+    then
+      echo -e "${LTGREEN}COMMAND:${NC} ${SUDO_CMD} usermod -aG ${SUDO_NO_PW_GROUP} ${SUDO_NO_PW_USER}${NC}"
+      ${SUDO_CMD} usermod -aG ${SUDO_NO_PW_GROUP} ${SUDO_NO_PW_USER}
+    fi
+    echo
+  done
+
   ##################### USER: skeleton user ###################################
 
   if [ -e /usr/etc/skel ]
@@ -1270,13 +1292,14 @@ install_user_environment() {
   #-------------------- Begin: /usr/etc/ --------------------
     echo -e "${LTCYAN}/usr/etc/skel/:${NC}"
     echo -e "${LTCYAN}----------------------${NC}"
-    # Xsession
+
+    ############### Xsession ###############
     echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} sh -c 'sed -i /gnome-session/d /usr/etc/skel/.xsession >> /usr/etc/skel/.xsession'${NC}"
     ${SUDO_CMD} sh -c 'sed -i /gnome-session/d /usr/etc/skel/.xsession >> /usr/etc/skel/.xsession'
     echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} sh -c \'echo \"gnome-session\" >> /usr/etc/skel/.xsession\'${NC}"
     ${SUDO_CMD} sh -c 'echo "gnome-session" >> /usr/etc/skel/.xsession'
  
-    # GNOME
+    ############### GNOME ###############
     echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} mkdir -p /usr/etc/skel/.local/share/gnome-shell/extensions${NC}"
     ${SUDO_CMD} mkdir -p /usr/etc/skel/.local/share/gnome-shell/extensions
     echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} tar -C /usr/etc/skel/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}/gnome-shell-extensions.${DISTRO_NAME}.tgz${NC}"
@@ -1302,13 +1325,14 @@ install_user_environment() {
   else
     echo -e "${LTCYAN}/etc/skel/:${NC}"
     echo -e "${LTCYAN}----------------------${NC}"
-    # Xsession
+
+    ############### Xsession ###############
     echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} sh -c 'sed -i /gnome-session/d /etc/skel/.xsession >> /etc/skel/.xsession'${NC}"
     ${SUDO_CMD} sh -c 'sed -i /gnome-session/d /etc/skel/.xsession >> /etc/skel/.xsession'
     echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} sh -c \'echo \"gnome-session\" >> /etc/skel/.xsession\'${NC}"
     ${SUDO_CMD} sh -c 'echo "gnome-session" >> /etc/skel/.xsession'
  
-    # GNOME
+    ############### GNOME ###############
     echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} mkdir -p /etc/skel/.local/share/gnome-shell/extensions${NC}"
     ${SUDO_CMD} mkdir -p /etc/skel/.local/share/gnome-shell/extensions
     echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} tar -C /etc/skel/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}/gnome-shell-extensions.${DISTRO_NAME}.tgz${NC}"
@@ -1335,18 +1359,18 @@ install_user_environment() {
   if [ -e /usr/etc/skel ]
   then
   #-------------------- Begin: /usr/etc/ --------------------
-    # mime
+    ############### mime ###############
     echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/mimeapps.list /usr/etc/skel/.config/${NC}"
     ${SUDO_CMD} cp ${FILES_SRC_DIR}/mimeapps.list /usr/etc/skel/.config/
  
-    # Vim
+    ############### Vim ###############
     if ! grep -q "set noautoindent" /usr/etc/skel/.vimrc
     then
       echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} sh -c 'echo \"set noautoindent\" >> /usr/etc/skel/.vimrc'${NC}"
       ${SUDO_CMD} sh -c 'echo "set noautoindent" >> /usr/etc/skel/.vimrc'
     fi
  
-    ## Bash Aliases
+    ############### Bash Aliases ###############
     #if ! grep -q "alias clear" /usr/etc/skel/.alias
     #then
     #  echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} sh -c 'echo \"alias clear='clear;echo;echo;echo'\" >> /usr/etc/skel/.alias'${NC}"
@@ -1354,18 +1378,18 @@ install_user_environment() {
     #fi
   #-------------------- End: /usr/etc/ --------------------
   else
-    # mime
+    ############### mime ###############
     echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/mimeapps.list /etc/skel/.config/${NC}"
     ${SUDO_CMD} cp ${FILES_SRC_DIR}/mimeapps.list /etc/skel/.config/
  
-    # Vim
+    ############### Vim ###############
     if ! grep -q "set noautoindent" /etc/skel/.vimrc
     then
       echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} sh -c 'echo \"set noautoindent\" >> /etc/skel/.vimrc'${NC}"
       ${SUDO_CMD} sh -c 'echo "set noautoindent" >> /etc/skel/.vimrc'
     fi
  
-    ## Bash Aliases
+    ############### Bash Aliases ###############
     #if ! grep -q "alias clear" /etc/skel/.alias
     #then
     #  echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} sh -c 'echo \"alias clear='clear;echo;echo;echo'\" >> /etc/skel/.alias'${NC}"
@@ -1379,13 +1403,13 @@ install_user_environment() {
 
   echo -e "${LTCYAN}/root/:${NC}"
   echo -e "${LTCYAN}----------------------${NC}"
-  # Xsession
+  ############### Xsession ###############
   echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} sh -c 'sed -i /gnome-session/d /root/.xsession >> /root/.xsession'${NC}"
   ${SUDO_CMD} sh -c 'sed -i /gnome-session/d /root/.xsession >> /root/.xsession'
   echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} sh -c \'echo \"gnome-session\" >> /root/.xsession\'${NC}"
   ${SUDO_CMD} sh -c 'echo "gnome-session" >> /root/.xsession'
 
-  # GNOME
+  ############### GNOME ###############
   echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} mkdir -p /root/.local/share/gnome-shell/extensions${NC}"
   ${SUDO_CMD} mkdir -p /root/.local/share/gnome-shell/extensions
   echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} tar -C /root/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}/gnome-shell-extensions.${DISTRO_NAME}.tgz${NC}"
@@ -1408,18 +1432,18 @@ install_user_environment() {
     ${SUDO_CMD} rm -f /root/.config/dconf/user
   fi
 
-  # mime
+  ############### mime ###############
   echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/mimeapps.list /root/.config/${NC}"
   ${SUDO_CMD} cp ${FILES_SRC_DIR}/mimeapps.list /root/.config/
 
-  # Vim
+  ############### Vim ###############
   if ! ${SUDO_CMD} sh -c 'grep -q "set noautoindent" /root/.vimrc'
   then
     echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} sh -c \'echo \"set noautoindent\" >> /root/.vimrc\'${NC}"
     ${SUDO_CMD} sh -c 'echo "set noautoindent" >> /root/.vimrc'
   fi
 
-  ## Bash Aliases
+  ############### Bash Aliases ###############
   #if ! grep -q "alias clear" /root/.alias
   #then
   #  echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} sh -c 'echo \"alias clear='clear;echo;echo;echo'\" >> /root/.alias'${NC}"
@@ -1430,26 +1454,6 @@ install_user_environment() {
   ${SUDO_CMD} usermod --add-subuids 100000-165535 --add-subgids 100000-165535 root
 
   echo
-
-  if ! [ -z ${SUDO_NO_PW_GROUP} ]
-  then
-    if ! grep -q ${SUDO_NO_PW_GROUP} /etc/group
-    then
-      echo -e "${LTGREEN}COMMAND:${NC} ${SUDO_CMD} groupadd ${SUDO_NO_PW_GROUP}${NC}"
-      ${SUDO_CMD} groupadd ${SUDO_NO_PW_GROUP}
-    fi
-    echo
-  fi
-
-  for SUDO_NO_PW_USER in ${SUDO_NO_PW_USER_LIST}
-  do
-    if ! groups ${SUDO_NO_PW_USER} | grep -q ${SUDO_NO_PW_GROUP}
-    then
-      echo -e "${LTGREEN}COMMAND:${NC} ${SUDO_CMD} usermod -aG ${SUDO_NO_PW_GROUP} ${SUDO_NO_PW_USER}${NC}"
-      ${SUDO_CMD} usermod -aG ${SUDO_NO_PW_GROUP} ${SUDO_NO_PW_USER}
-    fi
-    echo
-  done
 
   ##################### USER: users in ${USER_LIST} ###################################
 
@@ -1463,13 +1467,13 @@ install_user_environment() {
 
     echo -e "${LTCYAN}/home/${USER}/:${NC}"
     echo -e "${LTCYAN}----------------------${NC}"
-    # Xsession
+    ############### Xsession ###############
     echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} sed -i /gnome-session/d /home/${USER}/.xsession >> /home/${USER}/.xsession${NC}"
     ${SUDO_CMD} sed -i /gnome-session/d /home/${USER}/.xsession >> /home/${USER}/.xsession
     echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} echo \"gnome-session\" >> /home/${USER}/.xsession${NC}"
     ${SUDO_CMD} echo "gnome-session" >> /home/${USER}/.xsession
 
-    # GNOME
+    ############### GNOME ###############
     echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} mkdir -p /home/${USER}/.local/share/gnome-shell/extensions${NC}"
     ${SUDO_CMD} mkdir -p /home/${USER}/.local/share/gnome-shell/extensions
     echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} tar -C /home/${USER}/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}/gnome-shell-extensions.${DISTRO_NAME}.tgz${NC}"
@@ -1492,24 +1496,25 @@ install_user_environment() {
       ${SUDO_CMD} rm -f /home/${USER}/.config/dconf/user
     fi
 
-    # mime
+    ############### mime ###############
     echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/mimeapps.list /home/${USER}/.config/${NC}"
     ${SUDO_CMD} cp ${FILES_SRC_DIR}/mimeapps.list /home/${USER}/.config/
 
-    # Vim
+    ############### Vim ###############
     if ! grep -q "set noautoindent" /home/${USER}/.vimrc
     then
       echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} sh -c \"echo set noautoindent >> /home/${USER}/.vimrc\"${NC}"
       ${SUDO_CMD} sh -c "echo set noautoindent >> /home/${USER}/.vimrc"
     fi
 
-    ## Bash Aliases
+    ############### Bash Aliases ###############
     #if ! grep -q "alias clear" /home/${USER}/.alias
     #then
     #  echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} sh -c 'echo \"alias clear='clear;echo;echo;echo'\" >> /home/${USER}/.alias'${NC}"
     #  ${SUDO_CMD} sh -c 'echo "alias clear='clear;echo;echo;echo" >> /home/${USER}/.alias'
     #fi
 
+    ############### Home Dir Owenership/Permissions ###############
     echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown -R ${USER}:${USERS_GROUP} /home/${USER}${NC}"
     ${SUDO_CMD} chown -R ${USER}:${USERS_GROUP} /home/${USER}
     #echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown -R ${USER}:${USERS_GROUP} /home/${USER}/.local${NC}"
@@ -1517,11 +1522,13 @@ install_user_environment() {
     #echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown -R ${USER}:${USERS_GROUP} /home/${USER}/.config${NC}"
     #${SUDO_CMD} chown -R ${USER}:${USERS_GROUP} /home/${USER}/.config
 
+    ############### SubUIDS/SubGIDs ###############
     ## Add subuids|subgids for running containers with podman and docker
     ${SUDO_CMD} usermod --add-subuids 100000-165535 --add-subgids 100000-165535 ${USER}
 
     echo
 
+    ############### Secondary Group Membership ###############
     for SECONDARY_GROUP in ${USERS_SECONDARY_GROUPS}
     do
       echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} usermod -aG ${SECONDARY_GROUP} ${USER}${NC}"
@@ -1584,12 +1591,21 @@ install_cockpit() {
     ;;
   esac
 
+  # NOTE: A bit of a cluge but works
   if grep VERSION /etc/os-release | grep -q 15
   then
     local INSTALL_COCKPIT_PATTERN=N
   else
     local INSTALL_COCKPIT_PATTERN=Y
   fi
+
+  # NOTE: A better way but can take too long due to repo refresh
+  #if zypper --no-refresh se -t pattern | grep -q cockpit
+  #then
+  #  local INSTALL_COCKPIT_PATTERN=Y
+  #else
+  #  local INSTALL_COCKPIT_PATTERN=N
+  #fi
 
   case ${INSTALL_COCKPIT_PATTERN} in
     Y)
@@ -1608,6 +1624,9 @@ install_cockpit() {
     ;;
   esac
   echo
+  
+  echo -e "${LTGREEN}COMMAND:${NC} ${SUDO_CMD} systemctl enable --now cockpit-socket${NC}"
+  ${SUDO_CMD} systemctl enable --now cockpit-socket
 
   case ${STEPTHROUGH} in
     Y)
