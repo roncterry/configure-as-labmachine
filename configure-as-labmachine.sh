@@ -1,6 +1,6 @@
 #!/bin/bash
-# version: 3.6.0
-# date: 2026-08-05
+# version: 3.6.1
+# date: 2026-08-06
 
 CONFIG_DIR="./config"
 INCLUDE_DIR="./include"
@@ -1625,8 +1625,8 @@ install_cockpit() {
   esac
   echo
   
-  echo -e "${LTGREEN}COMMAND:${NC} ${SUDO_CMD} systemctl enable --now cockpit-socket${NC}"
-  ${SUDO_CMD} systemctl enable --now cockpit-socket
+  echo -e "${LTGREEN}COMMAND:${NC} ${SUDO_CMD} systemctl enable --now cockpit.socket${NC}"
+  ${SUDO_CMD} systemctl enable --now cockpit.socket
 
   case ${STEPTHROUGH} in
     Y)
