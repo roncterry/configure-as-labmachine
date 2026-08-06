@@ -1,5 +1,5 @@
 #!/bin/bash
-# version: 3.6.4
+# version: 3.6.6
 # date: 2026-08-06
 
 CONFIG_DIR="./config"
@@ -690,7 +690,7 @@ configure_sudo() {
     ;;
   esac
 
-  if ! which sudo > /dev/null
+  if ! sudo -V > /dev/null
   then
     echo -e "${LTCYAN}sudo Not Installed.  Installing ...${NC}"
     refresh_zypper_repos
@@ -2384,6 +2384,7 @@ main() {
     refresh_zypper_repos
     install_zypper_base_patterns
     remove_zypper_patterns
+    remove_zypper_packages
     install_zypper_base_packages
     install_zypper_remote_access_packages
     install_zypper_dev_packages
@@ -2422,6 +2423,7 @@ main() {
     install_zypper_base_patterns
     install_zypper_virt_patterns
     remove_zypper_patterns
+    remove_zypper_packages
     install_zypper_base_packages
     install_zypper_remote_access_packages
     install_zypper_virt_packages
@@ -2488,6 +2490,7 @@ main() {
     install_zypper_base_patterns
     install_zypper_virt_patterns
     remove_zypper_patterns
+    remove_zypper_packages
     install_zypper_base_packages
     install_zypper_remote_access_packages
     install_zypper_virt_packages
