@@ -1,5 +1,5 @@
 #!/bin/bash
-# version: 3.6.2
+# version: 3.6.3
 # date: 2026-08-06
 
 CONFIG_DIR="./config"
@@ -1064,6 +1064,9 @@ create_default_dirs() {
   #------------ Begin: /usr/etc/skel --------------------------------------
     echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} mkdir -p /usr/etc/skel/Applications${NC}"
     ${SUDO_CMD} mkdir -p /usr/etc/skel/Applications
+
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} mkdir -p /usr/etc/skel/Desktop${NC}"
+    ${SUDO_CMD} mkdir -p /usr/etc/skel/Desktop
   #------------ End: /usr/etc/skel --------------------------------------
   else
     echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} mkdir -p /etc/skel/Applications${NC}"
@@ -1536,6 +1539,10 @@ install_user_environment() {
     done
     echo
   done
+
+  echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} update-desktop-database /usr/share/applications${NC}"
+  ${SUDO_CMD} update-desktop-database /usr/share/applications
+  echo
 
   case ${STEPTHROUGH} in
     Y)
