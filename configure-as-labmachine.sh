@@ -1,5 +1,5 @@
 #!/bin/bash
-# version: 3.6.7
+# version: 3.6.8
 # date: 2026-08-06
 
 CONFIG_DIR="./config"
@@ -518,9 +518,9 @@ remove_zypper_packages() {
 
   for PACKAGE in ${ZYPPER_REMOVE_PACKAGE_LIST}
   do
-    ZYPPER_PACKAGE_REMOVE_LIST="${ZYPPER_PACKAGE_REMOVE_LIST} ${PACKAGE}"
-    #echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper ${ZYPPER_REMOVE_GLOBAL_OPTS} remove ${ZYPPER_REMOVE_OPTS} ${PACKAGE}${NC}"
-    #${SUDO_CMD} zypper ${ZYPPER_REMOVE_GLOBAL_OPTS} remove ${ZYPPER_REMOVE_OPTS} ${PACKAGE}
+    #ZYPPER_PACKAGE_REMOVE_LIST="${ZYPPER_PACKAGE_REMOVE_LIST} ${PACKAGE}"
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} zypper ${ZYPPER_REMOVE_GLOBAL_OPTS} remove ${ZYPPER_REMOVE_OPTS} ${PACKAGE}${NC}"
+    ${SUDO_CMD} zypper ${ZYPPER_REMOVE_GLOBAL_OPTS} remove ${ZYPPER_REMOVE_OPTS} ${PACKAGE}
   done
   echo
 
@@ -1071,12 +1071,18 @@ create_default_dirs() {
   else
     echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} mkdir -p /etc/skel/Applications${NC}"
     ${SUDO_CMD} mkdir -p /etc/skel/Applications
+
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} mkdir -p /etc/skel/Desktop${NC}"
+    ${SUDO_CMD} mkdir -p /etc/skel/Desktop
   fi
 
   for USER in ${USER_LIST}
   do
     echo -e "${LTGREEN}COMMAND:${NC}  sudo -u ${USER} mkdir -p /home/${USER}/Applications${NC}"
     sudo -u ${USER} mkdir -p /home/${USER}/Applications
+
+    echo -e "${LTGREEN}COMMAND:${NC}  sudo -u ${USER} mkdir -p /home/${USER}/Desktop${NC}"
+    sudo -u ${USER} mkdir -p /home/${USER}/Desktop
   done
 
   echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} mkdir -p /install/courses${NC}"
@@ -1221,6 +1227,10 @@ install_user_environment() {
     then
       echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} tar -C /usr/etc/ -xzf ${FILES_SRC_DIR}/dconf_defaults.${DISTRO_NAME}.tgz${NC}"
       ${SUDO_CMD} tar -C /usr/etc/ -xzf ${FILES_SRC_DIR}/dconf_defaults.${DISTRO_NAME}.tgz
+
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown -R root:root /usr/etc/dconf${NC}"
+      ${SUDO_CMD} chown -R root:root /usr/etc/dconf
+
       echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} dconf update${NC}"
       ${SUDO_CMD} dconf update
     fi
@@ -1232,6 +1242,10 @@ install_user_environment() {
     then
       echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} tar -C /etc/ -xzf ${FILES_SRC_DIR}/dconf_defaults.${DISTRO_NAME}.tgz${NC}"
       ${SUDO_CMD} tar -C /etc/ -xzf ${FILES_SRC_DIR}/dconf_defaults.${DISTRO_NAME}.tgz
+
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown -R root:root /etc/dconf${NC}"
+      ${SUDO_CMD} chown -R root:root /etc/dconf
+
       echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} dconf update${NC}"
       ${SUDO_CMD} dconf update
     fi
@@ -1624,6 +1638,9 @@ install_cockpit() {
       do
         echo -e "${LTGREEN}COMMAND:${NC} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${ZYPPER_COCKPIT_PATTERN_LIST}${NC}"
         ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${ZYPPER_COCKPIT_PATTERN_LIST}
+
+        echo -e "${LTGREEN}COMMAND:${NC} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${COCKPIT_PKG}${NC}"
+        ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${COCKPIT_PKG}
       done
     ;;
     *)
@@ -1638,6 +1655,7 @@ install_cockpit() {
   
   echo -e "${LTGREEN}COMMAND:${NC} ${SUDO_CMD} systemctl enable --now cockpit.socket${NC}"
   ${SUDO_CMD} systemctl enable --now cockpit.socket
+  echo
 
   case ${STEPTHROUGH} in
     Y)
@@ -2270,8 +2288,8 @@ main() {
     install_zypper_base_patterns
     remove_zypper_patterns
     install_zypper_base_packages
-    install_cockpit
     install_google_chrome
+    install_cockpit
     remove_zypper_packages
     # services
     enable_base_services
@@ -2289,8 +2307,8 @@ main() {
     install_zypper_base_patterns
     remove_zypper_patterns
     install_zypper_base_packages
-    install_cockpit
     install_google_chrome
+    install_cockpit
     remove_zypper_packages
     # user env
     install_wallpapers
@@ -2316,8 +2334,8 @@ main() {
     install_zypper_base_packages
     install_zypper_remote_access_packages
     install_zypper_virt_packages
-    install_cockpit
     install_google_chrome
+    install_cockpit
     remove_zypper_packages
     # libvirt
     install_modprobe_config
@@ -2352,8 +2370,8 @@ main() {
     install_zypper_base_packages
     install_zypper_remote_access_packages
     install_zypper_container_packages
-    install_cockpit
     install_google_chrome
+    install_cockpit
     remove_zypper_packages
     # libvirt
     install_modprobe_config
@@ -2388,8 +2406,8 @@ main() {
     install_zypper_base_packages
     install_zypper_remote_access_packages
     install_zypper_dev_packages
-    install_cockpit
     install_google_chrome
+    install_cockpit
     install_custom_remote_zypper_packages
     install_extra_rpms
     remove_zypper_packages
@@ -2429,8 +2447,8 @@ main() {
     install_zypper_virt_packages
     install_zypper_container_packages
     install_zypper_dev_packages
-    install_cockpit
     install_google_chrome
+    install_cockpit
     install_custom_remote_zypper_packages
     install_extra_rpms
     remove_zypper_packages
@@ -2496,8 +2514,8 @@ main() {
     install_zypper_virt_packages
     install_zypper_container_packages
     install_zypper_dev_packages
-    install_cockpit
     install_google_chrome
+    install_cockpit
     install_custom_remote_zypper_packages
     install_extra_rpms
     remove_zypper_packages
