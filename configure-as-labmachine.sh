@@ -1,5 +1,5 @@
 #!/bin/bash
-# version: 3.6.10
+# version: 3.6.11
 # date: 2026-08-13
 
 CONFIG_DIR="./config"
@@ -2146,12 +2146,9 @@ enable_remote_access_services() {
   do
     case ${SERVICE} in
       xrdp)
-        if which sestatus > /dev/null
+        if ${SUDO_CMD} sestatus | grep -i "selinux status" | grep -q enabled
         then
-          if ${SUDO_CMD} sestatus | grep "SELinux status" | grep -q enabled
-          then
-            ${SUDO_CMD} setsebool -P unconfined_service_transition_to_unconfined_user 1
-          fi
+          ${SUDO_CMD} setsebool -P unconfined_service_transition_to_unconfined_user 1
         fi
       ;;
     esac
