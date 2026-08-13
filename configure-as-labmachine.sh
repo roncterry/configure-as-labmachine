@@ -1,6 +1,6 @@
 #!/bin/bash
-# version: 3.6.8
-# date: 2026-08-06
+# version: 3.6.10
+# date: 2026-08-13
 
 CONFIG_DIR="./config"
 INCLUDE_DIR="./include"
@@ -641,10 +641,10 @@ install_appimages() {
       echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} cp ${APPIMAGE_SRC_DIR}/*.AppImage ${APPIMAGE_INSTALL_DIR}${NC}"
       ${SUDO_CMD} cp ${APPIMAGE_SRC_DIR}/*.AppImage ${APPIMAGE_INSTALL_DIR}
 
-      for USER in ${USER_LIST}
+      for USER_NAME in ${USER_LIST}
       do
-        echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD}  systemctl enable --machine=${USER}@.host --user appimaged.service${NC}"
-        ${SUDO_CMD} systemctl enable --machine=${USER}@.host --user appimaged.service
+        echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD}  systemctl enable --machine=${USER_NAME}@.host --user appimaged.service${NC}"
+        ${SUDO_CMD} systemctl enable --machine=${USER_NAME}@.host --user appimaged.service
       done
     ;;
     *)
@@ -1076,13 +1076,20 @@ create_default_dirs() {
     ${SUDO_CMD} mkdir -p /etc/skel/Desktop
   fi
 
-  for USER in ${USER_LIST}
+  for USER_NAME in ${USER_LIST}
   do
-    echo -e "${LTGREEN}COMMAND:${NC}  sudo -u ${USER} mkdir -p /home/${USER}/Applications${NC}"
-    sudo -u ${USER} mkdir -p /home/${USER}/Applications
+    GID=$(id ${USER_NAME} | awk '{ print $2 }'| cut -d \( -f 2 | cut -d \) -f 1)
 
-    echo -e "${LTGREEN}COMMAND:${NC}  sudo -u ${USER} mkdir -p /home/${USER}/Desktop${NC}"
-    sudo -u ${USER} mkdir -p /home/${USER}/Desktop
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} mkdir -p /home/${USER_NAME}/Applications${NC}"
+    ${SUDO_CMD} mkdir -p /home/${USER_NAME}/Applications
+
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} mkdir -p /home/${USER_NAME}/Desktop${NC}"
+    ${SUDO_CMD} mkdir -p /home/${USER_NAME}/Desktop
+
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown -R ${USER_NAME}:${GID} /home/${USER_NAME}${NC}"
+    ${SUDO_CMD} chown -R ${USER_NAME}:${GID} /home/${USER_NAME}
+
+    unset GID
   done
 
   echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} mkdir -p /install/courses${NC}"
@@ -1474,82 +1481,85 @@ install_user_environment() {
 
   ##################### USER: users in ${USER_LIST} ###################################
 
-  for USER in ${USER_LIST}
+  for USER_NAME in ${USER_LIST}
   do
-    if ! groups ${USER} | grep -q ${USERS_GROUP}
+    GID=$(id ${USER_NAME} | awk '{ print $2 }'| cut -d \( -f 2 | cut -d \) -f 1)
+
+    if ! groups ${USER_NAME} | grep -q ${USERS_GROUP}
     then
-      echo -e "${LTGREEN}COMMAND:${NC} ${SUDO_CMD} usermod -aG ${USERS_GROUP} ${USER}${NC}"
-      ${SUDO_CMD} usermod -aG ${USERS_GROUP} ${USER}
+      echo -e "${LTGREEN}COMMAND:${NC} ${SUDO_CMD} usermod -aG ${USERS_GROUP} ${USER_NAME}${NC}"
+      ${SUDO_CMD} usermod -aG ${USERS_GROUP} ${USER_NAME}
     fi
 
-    echo -e "${LTCYAN}/home/${USER}/:${NC}"
+    echo -e "${LTCYAN}/home/${USER_NAME}/:${NC}"
     echo -e "${LTCYAN}----------------------${NC}"
     ############### Xsession ###############
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} sed -i /gnome-session/d /home/${USER}/.xsession >> /home/${USER}/.xsession${NC}"
-    ${SUDO_CMD} sed -i /gnome-session/d /home/${USER}/.xsession >> /home/${USER}/.xsession
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} echo \"gnome-session\" >> /home/${USER}/.xsession${NC}"
-    ${SUDO_CMD} echo "gnome-session" >> /home/${USER}/.xsession
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} sed -i /gnome-session/d /home/${USER_NAME}/.xsession >> /home/${USER_NAME}/.xsession${NC}"
+    ${SUDO_CMD} sed -i /gnome-session/d /home/${USER_NAME}/.xsession >> /home/${USER_NAME}/.xsession
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} echo \"gnome-session\" >> /home/${USER_NAME}/.xsession${NC}"
+    ${SUDO_CMD} echo "gnome-session" >> /home/${USER_NAME}/.xsession
 
     ############### GNOME ###############
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} mkdir -p /home/${USER}/.local/share/gnome-shell/extensions${NC}"
-    ${SUDO_CMD} mkdir -p /home/${USER}/.local/share/gnome-shell/extensions
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} tar -C /home/${USER}/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}/gnome-shell-extensions.${DISTRO_NAME}.tgz${NC}"
-    ${SUDO_CMD} tar -C /home/${USER}/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}/gnome-shell-extensions.${DISTRO_NAME}.tgz
-    if ! [ -e /home/${USER}/.config ]
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} mkdir -p /home/${USER_NAME}/.local/share/gnome-shell/extensions${NC}"
+    ${SUDO_CMD} mkdir -p /home/${USER_NAME}/.local/share/gnome-shell/extensions
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} tar -C /home/${USER_NAME}/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}/gnome-shell-extensions.${DISTRO_NAME}.tgz${NC}"
+    ${SUDO_CMD} tar -C /home/${USER_NAME}/.local/share/gnome-shell/extensions/ -xzf ${FILES_SRC_DIR}/gnome-shell-extensions.${DISTRO_NAME}.tgz
+    if ! [ -e /home/${USER_NAME}/.config ]
     then
-      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} mkdir -p /home/${USER}/.config${NC}"
-      ${SUDO_CMD} mkdir -p /home/${USER}/.config
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} mkdir -p /home/${USER_NAME}/.config${NC}"
+      ${SUDO_CMD} mkdir -p /home/${USER_NAME}/.config
     fi
     if [ -e ${FILES_SRC_DIR}/user.${DISTRO_NAME} ]
     then
-      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} mkdir -p /home/${USER}/.config/dconf${NC}"
-      ${SUDO_CMD} mkdir -p /home/${USER}/.config/dconf
-      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/user.${DISTRO_NAME} /home/${USER}/.config/dconf/user${NC}"
-      ${SUDO_CMD} cp ${FILES_SRC_DIR}/user.${DISTRO_NAME} /home/${USER}/.config/dconf/user
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} mkdir -p /home/${USER_NAME}/.config/dconf${NC}"
+      ${SUDO_CMD} mkdir -p /home/${USER_NAME}/.config/dconf
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/user.${DISTRO_NAME} /home/${USER_NAME}/.config/dconf/user${NC}"
+      ${SUDO_CMD} cp ${FILES_SRC_DIR}/user.${DISTRO_NAME} /home/${USER_NAME}/.config/dconf/user
     fi
     if [ -e ${FILES_SRC_DIR}/dconf_defaults.${DISTRO_NAME}.tgz ]
     then
-      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} rm -f /home/${USER}/.config/dconf/user${NC}"
-      ${SUDO_CMD} rm -f /home/${USER}/.config/dconf/user
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} rm -f /home/${USER_NAME}/.config/dconf/user${NC}"
+      ${SUDO_CMD} rm -f /home/${USER_NAME}/.config/dconf/user
     fi
 
     ############### mime ###############
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/mimeapps.list /home/${USER}/.config/${NC}"
-    ${SUDO_CMD} cp ${FILES_SRC_DIR}/mimeapps.list /home/${USER}/.config/
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} cp ${FILES_SRC_DIR}/mimeapps.list /home/${USER_NAME}/.config/${NC}"
+    ${SUDO_CMD} cp ${FILES_SRC_DIR}/mimeapps.list /home/${USER_NAME}/.config/
 
     ############### Vim ###############
-    if ! grep -q "set noautoindent" /home/${USER}/.vimrc
+    if ! grep -q "set noautoindent" /home/${USER_NAME}/.vimrc
     then
-      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} sh -c \"echo set noautoindent >> /home/${USER}/.vimrc\"${NC}"
-      ${SUDO_CMD} sh -c "echo set noautoindent >> /home/${USER}/.vimrc"
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} sh -c \"echo set noautoindent >> /home/${USER_NAME}/.vimrc\"${NC}"
+      ${SUDO_CMD} sh -c "echo set noautoindent >> /home/${USER_NAME}/.vimrc"
     fi
 
     ############### Bash Aliases ###############
-    #if ! grep -q "alias clear" /home/${USER}/.alias
+    #if ! grep -q "alias clear" /home/${USER_NAME}/.alias
     #then
-    #  echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} sh -c 'echo \"alias clear='clear;echo;echo;echo'\" >> /home/${USER}/.alias'${NC}"
-    #  ${SUDO_CMD} sh -c 'echo "alias clear='clear;echo;echo;echo" >> /home/${USER}/.alias'
+    #  echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} sh -c 'echo \"alias clear='clear;echo;echo;echo'\" >> /home/${USER_NAME}/.alias'${NC}"
+    #  ${SUDO_CMD} sh -c 'echo "alias clear='clear;echo;echo;echo" >> /home/${USER_NAME}/.alias'
     #fi
 
     ############### Home Dir Owenership/Permissions ###############
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown -R ${USER}:${USERS_GROUP} /home/${USER}${NC}"
-    ${SUDO_CMD} chown -R ${USER}:${USERS_GROUP} /home/${USER}
-    #echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown -R ${USER}:${USERS_GROUP} /home/${USER}/.local${NC}"
-    #${SUDO_CMD} chown -R ${USER}:${USERS_GROUP} /home/${USER}/.local
-    #echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown -R ${USER}:${USERS_GROUP} /home/${USER}/.config${NC}"
-    #${SUDO_CMD} chown -R ${USER}:${USERS_GROUP} /home/${USER}/.config
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown -R ${USER_NAME}:${$GID} /home/${USER_NAME}${NC}"
+    ${SUDO_CMD} chown -R ${USER_NAME}:${$GID} /home/${USER_NAME}
+    #echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown -R ${USER_NAME}:${$GID} /home/${USER_NAME}/.local${NC}"
+    #${SUDO_CMD} chown -R ${USER_NAME}:${$GID} /home/${USER_NAME}/.local
+    #echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown -R ${USER_NAME}:${$GID} /home/${USER_NAME}/.config${NC}"
+    #${SUDO_CMD} chown -R ${USER_NAME}:${$GID} /home/${USER_NAME}/.config
 
     ############### SubUIDS/SubGIDs ###############
     ## Add subuids|subgids for running containers with podman and docker
-    ${SUDO_CMD} usermod --add-subuids 100000-165535 --add-subgids 100000-165535 ${USER}
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} usermod --add-subuids 100000-165535 --add-subgids 100000-165535 ${USER_NAME}${NC}"
+    ${SUDO_CMD} usermod --add-subuids 100000-165535 --add-subgids 100000-165535 ${USER_NAME}
 
     echo
 
     ############### Secondary Group Membership ###############
     for SECONDARY_GROUP in ${USERS_SECONDARY_GROUPS}
     do
-      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} usermod -aG ${SECONDARY_GROUP} ${USER}${NC}"
-      ${SUDO_CMD} usermod -aG ${SECONDARY_GROUP} ${USER}
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} usermod -aG ${SECONDARY_GROUP} ${USER_NAME}${NC}"
+      ${SUDO_CMD} usermod -aG ${SECONDARY_GROUP} ${USER_NAME}
     done
     echo
   done
@@ -1620,7 +1630,6 @@ install_cockpit() {
     local INSTALL_COCKPIT_PATTERN=N
   else
     local INSTALL_COCKPIT_PATTERN=Y
-    local ZYPPER_INSTALL_OPTS="-t pattern"
   fi
 
   # NOTE: A better way but can take too long due to repo refresh
@@ -1636,18 +1645,18 @@ install_cockpit() {
     Y)
       for COCKPIT_PATTERN in ${ZYPPER_COCKPIT_PATTERN_LIST}
       do
-        echo -e "${LTGREEN}COMMAND:${NC} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${ZYPPER_COCKPIT_PATTERN_LIST}${NC}"
-        ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${ZYPPER_COCKPIT_PATTERN_LIST}
+        echo -e "${LTGREEN}COMMAND:${NC} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install -t pattern ${ZYPPER_COCKPIT_PATTERN_LIST}${NC}"
+        ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install -t pattern ${ZYPPER_COCKPIT_PATTERN_LIST}
 
-        echo -e "${LTGREEN}COMMAND:${NC} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${COCKPIT_PKG}${NC}"
-        ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${COCKPIT_PKG}
+        echo -e "${LTGREEN}COMMAND:${NC} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${COCKPIT_PKG}${NC}"
+        ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${COCKPIT_PKG}
       done
     ;;
     *)
       for COCKPIT_PKG in ${ZYPPER_COCKPIT_PACKAGE_LIST}
       do
-        echo -e "${LTGREEN}COMMAND:${NC} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${COCKPIT_PKG}${NC}"
-        ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${ZYPPER_INSTALL_OPTS} ${COCKPIT_PKG}
+        echo -e "${LTGREEN}COMMAND:${NC} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${COCKPIT_PKG}${NC}"
+        ${SUDO_CMD} zypper ${ZYPPER_INSTALL_GLOBAL_OPTS} install ${COCKPIT_PKG}
       done
     ;;
   esac
@@ -1830,17 +1839,17 @@ install_atom_editor() {
     echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} tar -C /root/.atom/packages/ -xzf ${FILES_SRC_DIR}/atom-packages.tgz${NC}"
     ${SUDO_CMD} tar -C /root/.atom/packages/ -xzf ${FILES_SRC_DIR}/atom-packages.tgz
  
-    for USER in ${USER_LIST}
+    for USER_NAME in ${USER_LIST}
     do
-      echo -e "${LTCYAN}/home/${USER}/:${NC}"
+      echo -e "${LTCYAN}/home/${USER_NAME}/:${NC}"
       echo -e "${LTCYAN}----------------------${NC}"
-      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} mkdir -p /home/${USER}/.atom/packages/${NC}"
-      ${SUDO_CMD} mkdir -p /home/${USER}/.atom/packages/ -xzf ${FILES_SRC_DIR}/atom-packages/
-      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} tar -C /home/${USER}/.atom/packages/ -xzf ${FILES_SRC_DIR}/atom-packages.tgz${NC}"
-      ${SUDO_CMD} tar -C /home/${USER}/.atom/packages/ -xzf ${FILES_SRC_DIR}/atom-packages.tgz
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} mkdir -p /home/${USER_NAME}/.atom/packages/${NC}"
+      ${SUDO_CMD} mkdir -p /home/${USER_NAME}/.atom/packages/ -xzf ${FILES_SRC_DIR}/atom-packages/
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} tar -C /home/${USER_NAME}/.atom/packages/ -xzf ${FILES_SRC_DIR}/atom-packages.tgz${NC}"
+      ${SUDO_CMD} tar -C /home/${USER_NAME}/.atom/packages/ -xzf ${FILES_SRC_DIR}/atom-packages.tgz
 
-      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown -R ${USER}:${USERS_GROUP} /home/${USER}${NC}"
-      ${SUDO_CMD} chown -R ${USER}:${USERS_GROUP} /home/${USER}thoughs
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown -R ${USER_NAME}:${$GID} /home/${USER_NAME}${NC}"
+      ${SUDO_CMD} chown -R ${USER_NAME}:${$GID} /home/${USER_NAME}
       done
   fi
   echo
