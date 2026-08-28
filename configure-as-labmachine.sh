@@ -1,6 +1,6 @@
 #!/bin/bash
-# version: 3.6.11
-# date: 2026-08-13
+# version: 3.6.12
+# date: 2026-08-27
 
 CONFIG_DIR="./config"
 INCLUDE_DIR="./include"
@@ -1223,6 +1223,33 @@ install_user_environment() {
 
   echo
 
+  ##################### GLOBAL: /etc/nsswitch.conf ###################################
+
+  if [ -e /etc/nsswitch.conf ]
+  then
+    echo -e "${LTCYAN}/etc/nsswitch.conf:${NC}"
+    echo -e "${LTCYAN}----------------------${NC}"
+    if ! grep "^passwd:" /etc/nsswitch.conf | grep -q systemd
+    then
+      echo -e "${LTCYAN}passwd:         compat systemd${NC}"
+      ${SUDO_CMD} sed -i 's/^passwd:.*/passwd:         compat systemd/' /etc/nsswitch.conf
+    fi
+
+    if ! grep "^group:" /etc/nsswitch.conf | grep -q systemd
+    then
+      echo -e "${LTCYAN}group:         compat [SUCCESS=merge] systemd${NC}"
+      ${SUDO_CMD} sed -i 's/^group:.*/group:          compat [SUCCESS=merge] systemd/' /etc/nsswitch.conf
+    fi
+
+    if ! grep "^shadow:" /etc/nsswitch.conf | grep -q systemd
+    then
+      echo -e "${LTCYAN}shadow:         compat systemd${NC}"
+      ${SUDO_CMD} sed -i 's/^shadow:.*/shadow:         compat systemd/' /etc/nsswitch.conf
+    fi
+  fi
+
+  echo
+
   ##################### GLOBAL: dconf ###################################
 
   if [ -e /usr/etc/dconf ]
@@ -1475,6 +1502,7 @@ install_user_environment() {
   #fi
 
   ## Add subuids|subgids for running containers with podman and docker
+  echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} usermod --add-subuids 100000-165535 --add-subgids 100000-165535 root${NC}"
   ${SUDO_CMD} usermod --add-subuids 100000-165535 --add-subgids 100000-165535 root
 
   echo
@@ -1485,11 +1513,27 @@ install_user_environment() {
   do
     GID=$(id ${USER_NAME} | awk '{ print $2 }'| cut -d \( -f 2 | cut -d \) -f 1)
 
+    ############### Common User's Group Membership ###############
     if ! groups ${USER_NAME} | grep -q ${USERS_GROUP}
     then
+      echo "Adding user to group: ${USERS_GROUP}"
       echo -e "${LTGREEN}COMMAND:${NC} ${SUDO_CMD} usermod -aG ${USERS_GROUP} ${USER_NAME}${NC}"
       ${SUDO_CMD} usermod -aG ${USERS_GROUP} ${USER_NAME}
+    else
+      echo "(Already a member of group: ${USERS_GROUP}"
     fi
+    echo
+
+    ############### Secondary Group Membership ###############
+    for SECONDARY_GROUP in ${USERS_SECONDARY_GROUPS}
+    do
+      echo "Adding user to group: ${SECONDARY_GROUP}"
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} usermod -aG ${SECONDARY_GROUP} ${USER_NAME}${NC}"
+      ${SUDO_CMD} usermod -aG ${SECONDARY_GROUP} ${USER_NAME}
+    done
+    echo
+
+    ####----------------------- Home Directory Stuff -----------------------####
 
     echo -e "${LTCYAN}/home/${USER_NAME}/:${NC}"
     echo -e "${LTCYAN}----------------------${NC}"
@@ -1555,13 +1599,6 @@ install_user_environment() {
 
     echo
 
-    ############### Secondary Group Membership ###############
-    for SECONDARY_GROUP in ${USERS_SECONDARY_GROUPS}
-    do
-      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} usermod -aG ${SECONDARY_GROUP} ${USER_NAME}${NC}"
-      ${SUDO_CMD} usermod -aG ${SECONDARY_GROUP} ${USER_NAME}
-    done
-    echo
   done
 
   echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} update-desktop-database /usr/share/applications${NC}"
