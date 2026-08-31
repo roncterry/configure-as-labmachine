@@ -1,6 +1,6 @@
 #!/bin/bash
-# version: 3.6.12
-# date: 2026-08-27
+# version: 3.6.13
+# date: 2026-08-31
 
 CONFIG_DIR="./config"
 INCLUDE_DIR="./include"
@@ -1086,8 +1086,8 @@ create_default_dirs() {
     echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} mkdir -p /home/${USER_NAME}/Desktop${NC}"
     ${SUDO_CMD} mkdir -p /home/${USER_NAME}/Desktop
 
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown -R ${USER_NAME}:${GID} /home/${USER_NAME}${NC}"
-    ${SUDO_CMD} chown -R ${USER_NAME}:${GID} /home/${USER_NAME}
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown -R ${USER_NAME}: /home/${USER_NAME}${NC}"
+    ${SUDO_CMD} chown -R ${USER_NAME}: /home/${USER_NAME}
 
     unset GID
   done
@@ -1585,12 +1585,12 @@ install_user_environment() {
     #fi
 
     ############### Home Dir Owenership/Permissions ###############
-    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown -R ${USER_NAME}:${$GID} /home/${USER_NAME}${NC}"
-    ${SUDO_CMD} chown -R ${USER_NAME}:${$GID} /home/${USER_NAME}
-    #echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown -R ${USER_NAME}:${$GID} /home/${USER_NAME}/.local${NC}"
-    #${SUDO_CMD} chown -R ${USER_NAME}:${$GID} /home/${USER_NAME}/.local
-    #echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown -R ${USER_NAME}:${$GID} /home/${USER_NAME}/.config${NC}"
-    #${SUDO_CMD} chown -R ${USER_NAME}:${$GID} /home/${USER_NAME}/.config
+    echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown -R ${USER_NAME}: /home/${USER_NAME}${NC}"
+    ${SUDO_CMD} chown -R ${USER_NAME}: /home/${USER_NAME}
+    #echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown -R ${USER_NAME}: /home/${USER_NAME}/.local${NC}"
+    #${SUDO_CMD} chown -R ${USER_NAME}: /home/${USER_NAME}/.local
+    #echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown -R ${USER_NAME}: /home/${USER_NAME}/.config${NC}"
+    #${SUDO_CMD} chown -R ${USER_NAME}: /home/${USER_NAME}/.config
 
     ############### SubUIDS/SubGIDs ###############
     ## Add subuids|subgids for running containers with podman and docker
@@ -1885,8 +1885,8 @@ install_atom_editor() {
       echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} tar -C /home/${USER_NAME}/.atom/packages/ -xzf ${FILES_SRC_DIR}/atom-packages.tgz${NC}"
       ${SUDO_CMD} tar -C /home/${USER_NAME}/.atom/packages/ -xzf ${FILES_SRC_DIR}/atom-packages.tgz
 
-      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown -R ${USER_NAME}:${$GID} /home/${USER_NAME}${NC}"
-      ${SUDO_CMD} chown -R ${USER_NAME}:${$GID} /home/${USER_NAME}
+      echo -e "${LTGREEN}COMMAND:${NC}  ${SUDO_CMD} chown -R ${USER_NAME}: /home/${USER_NAME}${NC}"
+      ${SUDO_CMD} chown -R ${USER_NAME}: /home/${USER_NAME}
       done
   fi
   echo
